@@ -1,0 +1,26 @@
+<ConsultarAluno>:
+    MDBoxLayout:
+        orientation: 'vertical'
+        spacing: 2
+
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 5
+            MDTextField:
+                id: idpes
+                hint_text: "Pesquisar"
+                pos_hint: {'center_x': 0.5, 'center_y': 0.8}
+                size_hint_x: 0.75
+                max_text_length: 25
+
+            MDFillRoundFlatButton:
+                text: "Buscar"
+                pos_hint: {'center_x': 0.5, 'center_y': 0.8}
+                on_release: root.pesquisar(idpes.text)
+
+
+            MDFillRoundFlatButton:
+                text: "Cancelar"
+                pos_hint: {'center_x': 0.5, 'center_y': 0.8}
+                on_release: root.principal()
+

@@ -1,0 +1,57 @@
+<MainScreen>
+    MDBoxLayout:
+        orientation: 'vertical'
+        radius: [25, 0, 0, 0]
+        md_bg_color: 'white'
+
+        MDTopAppBar:
+            id: toolbar
+            title: "DIBTOP"
+            theme_text_color: "Custom"
+            elevation: 0
+            pos_hint: {'top': 1}
+            md_bg_color: 0.19, 0.21, 0.22, 1
+            text_color: "white"
+
+        MDBoxLayout:
+            orientation: 'horizontal'
+            padding: 60, 40, 60, 40
+            MDBoxLayout:
+                orientation: 'vertical'
+                spacing: 40
+                #pos_hint: {"center_x": 0.46, "center_y": 0.52}
+                MDRaisedButton:
+                    id: alunobtn
+                    text: "ALUNOS"
+                    md_bg_color: "red"
+                    padding: 60, 40, 60, 40
+                    font_size: 40
+                    on_release: root.crud()
+
+                MDRaisedButton:
+                    id:turmabtn
+                    text: "TURMAS"
+                    md_bg_color: "blue"
+                    padding: 60, 40, 60, 40
+                    font_size: 39
+                    on_release: root.crud()
+
+                MDRaisedButton:
+                    id: cursobtn
+                    text: "CURSOS"
+                    md_bg_color: "green"
+                    padding: 60, 40, 60, 40
+                    font_size: 40
+                    on_release: root.crud()
+
+            MDBoxLayout:
+                orientation: 'vertical'
+                MDRectangleFlatIconButton:
+                    icon: "android"
+                    text: "GRADE DE HORÁRIOS"
+                    md_bg_color: "green"
+                    theme_text_color: "Custom"
+                    text_color: "black"
+                    #line_color: "black"
+                    theme_icon_color: "Custom"
+                    icon_color: "black"
