@@ -1,5 +1,6 @@
 import os
 from kivy.factory import Factory
+from kivy.properties import StringProperty
 from kivymd.uix.screenmanager import ScreenManager
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
@@ -123,23 +124,22 @@ class CadastrarAluno(MDScreen):
         self.manager.current = 'principal'
 
 
-class Avatar(ButtonBehavior, Image):
-    pass
-
-
 class AlunoItemLabel(Label):
     pass
 
 
 class AlunoListItem(TwoLineAvatarIconListItem):
+    nome = StringProperty('')
+    cpf = StringProperty('')
+
     def __init__(self, id_aluno='', nome='', cpf='', **kwargs):
         super(AlunoListItem, self).__init__(**kwargs)
         self.id_aluno = id_aluno
         self.nome = nome
         self.cpf = cpf
-        self.add_widget(Avatar(source='images/avatar.png'))
-        self.add_widget(AlunoItemLabel(text=nome))
-        self.add_widget(AlunoItemLabel(text=cpf))
+        '''print(nome)
+        self.add_widget(AlunoItemLabel(text=self.nome))
+        self.add_widget(AlunoItemLabel(text=self.cpf))'''
 
 
 class ConsultarAluno(MDScreen):
@@ -158,9 +158,14 @@ class ConsultarAluno(MDScreen):
             # Limpar a lista de alunos
             self.ids.aluno_list.clear_widgets()
 
+            consulta = cur.fetchall()
+
             # Iterar sobre os resultados da consulta
-            for row in cur.fetchall():
+            for row in consulta:
                 id_aluno, nome, cpf = row
+
+                print('Nome:', nome, 'CPF:', cpf)
+
                 # Criar um novo item de aluno
                 aluno_item = AlunoListItem(id_aluno=str(id_aluno), nome=nome, cpf=cpf)
                 # Adicionar o item à lista
