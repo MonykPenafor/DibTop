@@ -24,3 +24,14 @@
                 pos_hint: {'center_x': 0.5, 'center_y': 0.8}
                 on_release: root.principal()
 
+
+        ScrollView:
+            MDList:
+                id: aluno_list
+
+<AlunoListItem>:
+    TwoLineAvatarIconListItem:
+        text: root.nome
+        secondary_text: root.cpf
+        IconLeftWidget:
+            icon: 'account-circle'

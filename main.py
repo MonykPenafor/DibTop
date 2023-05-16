@@ -123,17 +123,51 @@ class CadastrarAluno(MDScreen):
         self.manager.current = 'principal'
 
 
+class Avatar(ButtonBehavior, Image):
+    pass
+
+
+class AlunoItemLabel(Label):
+    pass
+
+
+class AlunoListItem(TwoLineAvatarIconListItem):
+    def __init__(self, id_aluno='', nome='', cpf='', **kwargs):
+        super(AlunoListItem, self).__init__(**kwargs)
+        self.id_aluno = id_aluno
+        self.nome = nome
+        self.cpf = cpf
+        self.add_widget(Avatar(source='images/avatar.png'))
+        self.add_widget(AlunoItemLabel(text=nome))
+        self.add_widget(AlunoItemLabel(text=cpf))
+
+
 class ConsultarAluno(MDScreen):
     def principal(self):
         self.manager.current = 'principal'
 
-    def pesquisar(texto):
+    def pesquisar(self, texto):
         try:
             conn = conectar()
             cur = conn.cursor()
             print(texto)
+            cur.execute('''SELECT aluno.id_aluno, aluno.nome, aluno.cpf 
+                           FROM aluno
+                           WHERE aluno.nome LIKE %s''', ('%' + texto + '%',))
 
-            cur.execute('''select aluno.nome, aluno.cpf from aluno where aluno.nome LIKE %s''', ('%' + texto + '%'))
+            # Limpar a lista de alunos
+            self.ids.aluno_list.clear_widgets()
+
+            # Iterar sobre os resultados da consulta
+            for row in cur.fetchall():
+                id_aluno, nome, cpf = row
+                # Criar um novo item de aluno
+                aluno_item = AlunoListItem(id_aluno=str(id_aluno), nome=nome, cpf=cpf)
+                # Adicionar o item à lista
+                self.ids.aluno_list.add_widget(aluno_item)
+
+            # Fechar a conexão com o banco de dados
+            conn.close()
 
         except Exception as e:
             toast(f"Error: {e}", duration=5)
