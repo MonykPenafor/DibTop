@@ -124,6 +124,10 @@ class CadastrarAluno(MDScreen):
         self.manager.current = 'principal'
 
 
+class Avatar(ButtonBehavior, Image):
+    pass
+
+
 class AlunoItemLabel(Label):
     pass
 
@@ -138,6 +142,7 @@ class AlunoListItem(TwoLineAvatarIconListItem):
         self.nome = nome
         self.cpf = cpf
         '''print(nome)
+        self.add_widget(Avatar(source='images/avatar.png'))
         self.add_widget(AlunoItemLabel(text=self.nome))
         self.add_widget(AlunoItemLabel(text=self.cpf))'''
 
@@ -153,7 +158,8 @@ class ConsultarAluno(MDScreen):
             print(texto)
             cur.execute('''SELECT aluno.id_aluno, aluno.nome, aluno.cpf 
                            FROM aluno
-                           WHERE aluno.nome LIKE %s''', ('%' + texto + '%',))
+                           WHERE aluno.nome LIKE %s
+                           ORDER BY 2''', ('%' + texto + '%',))
 
             # Limpar a lista de alunos
             self.ids.aluno_list.clear_widgets()
