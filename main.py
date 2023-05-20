@@ -1,5 +1,4 @@
 import os
-from kivy.factory import Factory
 from kivy.properties import StringProperty
 from kivymd.uix.screenmanager import ScreenManager
 from kivymd.uix.screen import MDScreen
@@ -9,15 +8,7 @@ from kaki.app import App
 import psycopg2
 from kivymd.toast import toast
 from datetime import datetime
-from kivy.uix.label import Label
 from kivymd.uix.list import TwoLineAvatarIconListItem
-from kivy.uix.image import Image
-from kivy.uix.behaviors import ButtonBehavior
-from kivy.lang import Builder
-from kivy.uix.floatlayout import FloatLayout
-from kivymd.uix.toolbar import MDToolbar
-from kivymd.uix.toolbar import MDTopAppBar
-from kivymd.uix.toolbar import toolbar
 
 
 def conectar():
@@ -60,6 +51,22 @@ class MainScreen(MDScreen):
 
 class LoginScreen(MDScreen):
 
+    def on_enter(self):
+        Window.bind(on_key_down=self.on_key_down)
+
+    def on_key_down(self, instance, key, *args):
+        if key == 9:  # Código para a tecla "Tab" é 9
+            focus_next = False
+            for child in self.ids.keys():
+                if focus_next:
+                    self.ids[child].focus = True
+                    break
+                if child == self.focus:
+                    focus_next = True
+
+    def on_textfield_validate(self, next_widget):
+        next_widget.focus = True
+
     def get_data(self):
         login = self.ids.idlogin.text
         senha = self.ids.idsenha.text
@@ -78,12 +85,15 @@ class CrudScreen(MDScreen):
     def consultar(self):
         self.manager.current = "con_aluno"
 
-    # botão cancelar
     def principal(self):
         self.manager.current = 'principal'
 
 
 class CadastrarAluno(MDScreen):
+
+    def principal(self):
+        self.manager.current = 'principal'
+
     def guardar_dados(self):
         try:
             nome = self.ids.idnome.text
@@ -113,23 +123,12 @@ class CadastrarAluno(MDScreen):
                   nome_mae, estado_civil, escolaridade))
 
             conn.commit()  # Confirma a transação
-            toast("Salvo com sucesso", duration=2)
+            toast("Salvo com sucesso!", duration=2)
+            self.principal()
 
         except Exception as e:
             toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
-            # print(f"Error ao inserir dados do Aluno: {e}")
             return False
-
-    def principal(self):
-        self.manager.current = 'principal'
-
-
-class Avatar(ButtonBehavior, Image):
-    pass
-
-
-class AlunoItemLabel(Label):
-    pass
 
 
 class AlunoListItem(TwoLineAvatarIconListItem):
@@ -141,15 +140,14 @@ class AlunoListItem(TwoLineAvatarIconListItem):
         self.id_aluno = id_aluno
         self.nome = nome
         self.cpf = cpf
-        '''print(nome)
-        self.add_widget(Avatar(source='images/avatar.png'))
-        self.add_widget(AlunoItemLabel(text=self.nome))
-        self.add_widget(AlunoItemLabel(text=self.cpf))'''
 
 
 class ConsultarAluno(MDScreen):
+
     def principal(self):
         self.manager.current = 'principal'
+        print(self.manager.current)
+        print('aqui')
 
     def pesquisar(self, texto):
         try:
@@ -205,9 +203,9 @@ class DibTopApp(MDApp, App):
     ]
 
     def build_app(self, **kwargs):
-        Window.maximize()
+        # Window.maximize()
         self.theme_cls.primary_palette = "Green"
-        return Factory.MainScreenManager()
+        return MainScreenManager()
 
 
 # run the app

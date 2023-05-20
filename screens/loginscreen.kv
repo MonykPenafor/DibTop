@@ -1,30 +1,30 @@
-<LoginScreen>
+<LoginScreen>:
     FloatLayout:
         MDTextField:
             id: idlogin
-            hint_text:"Login"
-            pos_hint: {'center_x':0.5,'center_y':0.8}
+            hint_text: "Login"
+            pos_hint: {'center_x': 0.5, 'center_y': 0.8}
             size_hint_x: 0.75
             max_text_length: 25
-            #line_color_normal: [0,1,1,1]
-            #line_color_focus: [0,1,0,1]
+            on_text_validate: root.on_textfield_validate(idsenha)
         MDTextField:
             id: idsenha
-            hint_text:"Senha"
-            pos_hint: {'center_x':0.5,'center_y':0.6}
+            hint_text: "Senha"
+            pos_hint: {'center_x': 0.5, 'center_y': 0.6}
             size_hint_x: 0.75
             password: True
-            #line_color_normal: [0,1,1,1]
-            #line_color_focus: [0,1,0,1]
+            on_text_validate: root.on_textfield_validate(btn_entrar)
         MDTextButton:
+            id: btn_esqueci
             text: "Esqueci minha senha"
-            pos_hint: {'center_x':0.5,'center_y':0.4}
+            pos_hint: {'center_x': 0.5, 'center_y': 0.4}
             font_size: 15
         MDFillRoundFlatButton:
+            id: btn_entrar
             text: "Entrar"
-            pos_hint: {'center_x':0.5,'center_y':0.2}
+            pos_hint: {'center_x': 0.5, 'center_y': 0.2}
             size_hint_x: 0.75
-            text_color: 1,1,1,1
-            md_bg_color: 0.18,0.53,1,1
+            text_color: 1, 1, 1, 1
+            md_bg_color: 0.18, 0.53, 1, 1
             font_size: 20
             on_release: root.get_data()

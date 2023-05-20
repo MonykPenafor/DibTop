@@ -1,11 +1,13 @@
 <ConsultarAluno>:
-    MDBoxLayout:
-        orientation: 'vertical'
-        spacing: 2
-
+    BoxLayout:
+        orientation:'vertical'
+        padding: '20dp'
         BoxLayout:
             orientation: 'horizontal'
             spacing: 5
+            size_hint_y: None
+            height: dp(48)
+
             MDTextField:
                 id: idpes
                 hint_text: "Pesquisar"
@@ -18,22 +20,26 @@
                 pos_hint: {'center_x': 0.5, 'center_y': 0.8}
                 on_release: root.pesquisar(idpes.text)
 
-
             MDFillRoundFlatButton:
                 text: "Cancelar"
                 pos_hint: {'center_x': 0.5, 'center_y': 0.8}
                 on_release: root.principal()
+        BoxLayout:
+            ScrollView:
+                MDList:
+                    id: aluno_list
 
-
-        ScrollView:
-            MDList:
-                id: aluno_list
 
 <AlunoListItem>:
     text: root.nome
     secondary_text: root.cpf
     IconLeftWidget:
         icon: 'account-circle'
-
-
-
+    MDIconButton:
+        icon: "images/edit.png"
+        pos_hint: {"center_x": .85, "center_y": .5}
+        on_release: app.principal()
+    MDIconButton:
+        icon: "images/delete.png"
+        pos_hint: {"center_x": .90, "center_y": .5}
+        #on_release:
