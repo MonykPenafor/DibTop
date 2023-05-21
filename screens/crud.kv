@@ -26,16 +26,8 @@
             font_size: 25
             on_release: root.consultar()
 
-        MDFillRoundFlatButton:
-            text: "EDITAR"
-            pos_hint: {'center_x':0.5,'center_y':0.25}
-            #size_hint_x: 0.45
-            padding: 48, 10, 48, 10
-            text_color: 1,1,1,1
-            md_bg_color: 0.18,0.53,1,1
-            font_size: 25
 
         MDTextButton:
             text: 'Cancelar'
-            on_release: root.principal()
+            on_release: app.navigation.return_to_principal()
             #pos_hint: {'center_x': .5}

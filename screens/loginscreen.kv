@@ -7,13 +7,14 @@
             size_hint_x: 0.75
             max_text_length: 25
             on_text_validate: root.on_textfield_validate(idsenha)
+
         MDTextField:
             id: idsenha
             hint_text: "Senha"
             pos_hint: {'center_x': 0.5, 'center_y': 0.6}
             size_hint_x: 0.75
             password: True
-            on_text_validate: root.on_textfield_validate(btn_entrar)
+
         MDTextButton:
             id: btn_esqueci
             text: "Esqueci minha senha"

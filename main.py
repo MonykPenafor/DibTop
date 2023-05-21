@@ -1,14 +1,22 @@
-import os
-from kivy.properties import StringProperty
+from kivy.app import App
+from kivy.event import EventDispatcher
+from kivy.lang import Builder
+from kivy.properties import StringProperty, ObjectProperty
 from kivymd.uix.screenmanager import ScreenManager
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
 from kivymd.app import MDApp
-from kaki.app import App
 import psycopg2
 from kivymd.toast import toast
 from datetime import datetime
 from kivymd.uix.list import TwoLineAvatarIconListItem
+
+Builder.load_file("screens/screenmanager.kv")
+Builder.load_file("screens/loginscreen.kv")
+Builder.load_file("screens/mainscreen.kv")
+Builder.load_file("screens/crud.kv")
+Builder.load_file("screens/cadastrar_aluno.kv")
+Builder.load_file("screens/consultar_aluno.kv")
 
 
 def conectar():
@@ -44,8 +52,6 @@ class MainScreen(MDScreen):
     # Window.size = (700, 550)
 
     def crud(self):
-        nome = self.ids.alunobtn.text
-        toast(nome, duration=2)
         self.manager.current = 'crud'
 
 
@@ -80,19 +86,13 @@ class LoginScreen(MDScreen):
 
 class CrudScreen(MDScreen):
     def cadastrar(self):
-        self.manager.current = 'cad_aluno'
+        self.manager.current = "cad_aluno"
 
     def consultar(self):
         self.manager.current = "con_aluno"
 
-    def principal(self):
-        self.manager.current = 'principal'
-
 
 class CadastrarAluno(MDScreen):
-
-    def principal(self):
-        self.manager.current = 'principal'
 
     def guardar_dados(self):
         try:
@@ -131,7 +131,15 @@ class CadastrarAluno(MDScreen):
             return False
 
 
-class AlunoListItem(TwoLineAvatarIconListItem):
+class NavigationManager:
+    def __init__(self, screen_manager):
+        self.screen_manager = screen_manager
+
+    def return_to_principal(self):
+        self.screen_manager.current = 'principal'
+
+
+class AlunoListItem(TwoLineAvatarIconListItem, EventDispatcher):
     nome = StringProperty('')
     cpf = StringProperty('')
 
@@ -143,11 +151,6 @@ class AlunoListItem(TwoLineAvatarIconListItem):
 
 
 class ConsultarAluno(MDScreen):
-
-    def principal(self):
-        self.manager.current = 'principal'
-        print(self.manager.current)
-        print('aqui')
 
     def pesquisar(self, texto):
         try:
@@ -167,7 +170,6 @@ class ConsultarAluno(MDScreen):
             # Iterar sobre os resultados da consulta
             for row in consulta:
                 id_aluno, nome, cpf = row
-
                 print('Nome:', nome, 'CPF:', cpf)
 
                 # Criar um novo item de aluno
@@ -183,29 +185,21 @@ class ConsultarAluno(MDScreen):
             print(e)
 
 
-class DibTopApp(MDApp, App):
-    DEBUG = 1  # set this to 0 make live app not working
+class DibTopApp(MDApp):
 
-    # *.kv files to watch
-    KV_FILES = {
-        os.path.join(os.getcwd(), "screens/screenmanager.kv"),
-        os.path.join(os.getcwd(), "screens/mainscreen.kv"),
-        os.path.join(os.getcwd(), "screens/loginscreen.kv"),
-        os.path.join(os.getcwd(), "screens/crud.kv"),
-        os.path.join(os.getcwd(), "screens/cadastrar_aluno.kv"),
-        os.path.join(os.getcwd(), "screens/consultar_aluno.kv"),
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.navigation = None
 
-    }
-
-    # auto reload path
-    AUTORELOADER_PATHS = [
-        (".", {"recursive": True}),
-    ]
-
-    def build_app(self, **kwargs):
+    def build(self):
         # Window.maximize()
         self.theme_cls.primary_palette = "Green"
-        return MainScreenManager()
+
+        sm = MainScreenManager()
+        sm.current = 'login'
+
+        self.navigation = NavigationManager(sm)  # Passando a instância de MainScreenManager para NavigationManager
+        return sm
 
 
 # run the app
