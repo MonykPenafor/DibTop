@@ -6,7 +6,7 @@
             pos_hint: {'center_x': 0.5, 'center_y': 0.8}
             size_hint_x: 0.75
             max_text_length: 25
-            on_text_validate: root.on_textfield_validate(idsenha)
+            keyboard_mode: 'auto'
 
         MDTextField:
             id: idsenha
@@ -14,12 +14,15 @@
             pos_hint: {'center_x': 0.5, 'center_y': 0.6}
             size_hint_x: 0.75
             password: True
+            keyboard_mode: 'auto'
 
         MDTextButton:
             id: btn_esqueci
             text: "Esqueci minha senha"
             pos_hint: {'center_x': 0.5, 'center_y': 0.4}
             font_size: 15
+            keyboard_mode: 'auto'
+
         MDFillRoundFlatButton:
             id: btn_entrar
             text: "Entrar"
@@ -29,3 +32,4 @@
             md_bg_color: 0.18, 0.53, 1, 1
             font_size: 20
             on_release: root.get_data()
+            keyboard_mode: 'auto'

@@ -10,6 +10,7 @@ import psycopg2
 from kivymd.toast import toast
 from datetime import datetime
 from kivymd.uix.list import TwoLineAvatarIconListItem
+from kivy.core.window import Keyboard
 
 Builder.load_file("screens/screenmanager.kv")
 Builder.load_file("screens/loginscreen.kv")
@@ -56,22 +57,35 @@ class MainScreen(MDScreen):
 
 
 class LoginScreen(MDScreen):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.keyboard = None
+        self.focusable_widgets = None
 
-    def on_enter(self):
-        Window.bind(on_key_down=self.on_key_down)
+    def on_pre_enter(self):
+        self.focusable_widgets = [
+            self.ids.idlogin,
+            self.ids.idsenha,
+            self.ids.btn_esqueci,
+            self.ids.btn_entrar
+        ]
+        self.keyboard = Window
+        self.keyboard.bind(on_key_down=self.on_key_down)
 
-    def on_key_down(self, instance, key, *args):
-        if key == 9:  # Código para a tecla "Tab" é 9
-            focus_next = False
-            for child in self.ids.keys():
-                if focus_next:
-                    self.ids[child].focus = True
-                    break
-                if child == self.focus:
-                    focus_next = True
+    def on_key_down(self, keyboard, keycode, text, modifiers, *args):
+        if keycode == 9:  # 9 é o código da tecla Tab
+            self.focus_next()
 
-    def on_textfield_validate(self, next_widget):
-        next_widget.focus = True
+    def focus_next(self):
+        current_index = -1
+        for i, widget in enumerate(self.focusable_widgets):
+            if widget.focus:
+                current_index = i
+                widget.focus = False
+                break
+
+        next_index = (current_index + 1) % len(self.focusable_widgets)
+        self.focusable_widgets[next_index].focus = True
 
     def get_data(self):
         login = self.ids.idlogin.text
@@ -138,6 +152,46 @@ class NavigationManager:
     def return_to_principal(self):
         self.screen_manager.current = 'principal'
 
+    def tela_editar(self, classe):
+        self.screen_manager.current = 'cad_aluno'
+
+        try:
+            conn = conectar()
+            cur = conn.cursor()
+
+            id_aluno = classe.id_aluno
+
+            cur.execute('''SELECT aluno.nome, aluno.cpf, aluno.dt_nasc, aluno.endereco, aluno.email, aluno.telefone, 
+                            aluno.naturalidade, aluno.nome_mae, aluno.estado_civil, aluno.escolaridade
+                           FROM aluno
+                           WHERE aluno.id_aluno = %s
+                           ''', (id_aluno,))
+
+            consulta = cur.fetchone()
+
+            print(consulta)
+
+            nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil, escolaridade = consulta
+            print(nome)
+            print(dt_nasc)
+
+            '''self.ids.idnome.text = nome
+            self.ids.idcpf.text = cpf
+            self.ids.iddtnasc.text = dt_nasc
+            self.ids.idend.text = endereco
+            self.ids.idemail.text = email
+            self.ids.idtel.text = telefone
+            self.ids.idnat.text = naturalidade
+            self.ids.idnomemae.text = nome_mae
+            self.ids.idestcivil.text = estado_civil
+            self.ids.idesc.text = escolaridade'''
+
+            conn.close()
+
+        except Exception as e:
+            toast(f"Error: {e}", duration=5)
+            print(e)
+
 
 class AlunoListItem(TwoLineAvatarIconListItem, EventDispatcher):
     nome = StringProperty('')
@@ -166,7 +220,7 @@ class ConsultarAluno(MDScreen):
             self.ids.aluno_list.clear_widgets()
 
             consulta = cur.fetchall()
-
+            print(consulta)
             # Iterar sobre os resultados da consulta
             for row in consulta:
                 id_aluno, nome, cpf = row
