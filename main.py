@@ -1,3 +1,5 @@
+from time import sleep
+
 from kivy.app import App
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
@@ -43,6 +45,16 @@ def validar_login(login, senha):
     except Exception as e:
         print(f"Error ao validar login: {e}")
         return False
+
+
+def conf_data(data):
+    data = str(data)
+    ano = data[0:4]
+    mes = data[5:7]
+    dia = data[8:11]
+
+    data = dia + '/' + mes + '/' + ano
+    return data
 
 
 class MainScreenManager(ScreenManager):
@@ -107,42 +119,93 @@ class CrudScreen(MDScreen):
 
 
 class CadastrarAluno(MDScreen):
+    def principal(self):
+        self.manager.current = 'principal'
 
-    def guardar_dados(self):
-        try:
-            nome = self.ids.idnome.text
-            cpf = self.ids.idcpf.text
-            dt_nasc = self.ids.iddtnasc.text
-            endereco = self.ids.idend.text
-            email = self.ids.idemail.text
-            telefone = self.ids.idtel.text
-            naturalidade = self.ids.idnat.text
-            nome_mae = self.ids.idnomemae.text
-            estado_civil = self.ids.idestcivil.text
-            escolaridade = self.ids.idesc.text
+    def salvar_dados(self):
 
-            # Converte a string da data de nascimento para um objeto datetime
-            dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
+        idaluno = self.ids.idaluno.text
 
-            conn = conectar()
-            cur = conn.cursor()
-            print(nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
-                  nome_mae, estado_civil, escolaridade)
+        if idaluno == '-':
+            try:
+                nome = self.ids.idnome.text
+                cpf = self.ids.idcpf.text
+                dt_nasc = self.ids.iddtnasc.text
+                endereco = self.ids.idend.text
+                email = self.ids.idemail.text
+                telefone = self.ids.idtel.text
+                naturalidade = self.ids.idnat.text
+                nome_mae = self.ids.idnomemae.text
+                estado_civil = self.ids.idestcivil.text
+                escolaridade = self.ids.idesc.text
 
-            cur.execute("""INSERT into Aluno 
-            (nome,cpf,dt_nasc,endereco,email,telefone,
-            naturalidade,nome_mae,estado_civil,escolaridade) 
-            Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
-                  nome_mae, estado_civil, escolaridade))
+                # Converte a string da data de nascimento para um objeto datetime
+                dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
 
-            conn.commit()  # Confirma a transação
-            toast("Salvo com sucesso!", duration=2)
-            self.principal()
+                conn = conectar()
+                cur = conn.cursor()
+                print(nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
+                      nome_mae, estado_civil, escolaridade)
 
-        except Exception as e:
-            toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
-            return False
+                cur.execute("""INSERT into Aluno 
+                (nome,cpf,dt_nasc,endereco,email,telefone,
+                naturalidade,nome_mae,estado_civil,escolaridade) 
+                Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
+                      nome_mae, estado_civil, escolaridade))
+
+                conn.commit()  # Confirma a transação
+                toast("Salvo com sucesso!", duration=2)
+                sleep(2)
+                self.principal()
+
+            except Exception as e:
+                toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
+                return False
+        else:
+            print('tela editar')
+            try:
+                id_aluno = idaluno
+                nome = self.ids.idnome.text
+                cpf = self.ids.idcpf.text
+                dt_nasc = self.ids.iddtnasc.text
+                endereco = self.ids.idend.text
+                email = self.ids.idemail.text
+                telefone = self.ids.idtel.text
+                naturalidade = self.ids.idnat.text
+                nome_mae = self.ids.idnomemae.text
+                estado_civil = self.ids.idestcivil.text
+                escolaridade = self.ids.idesc.text
+
+                # Converte a string da data de nascimento para um objeto datetime
+                dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
+
+                conn = conectar()
+                cur = conn.cursor()
+
+                cur.execute("""UPDATE Aluno 
+                                SET nome = %s, 
+                                cpf = %s, 
+                                dt_nasc = %s, 
+                                endereco = %s, 
+                                email = %s, 
+                                telefone = %s,
+                                naturalidade = %s, 
+                                nome_mae = %s, 
+                                estado_civil = %s, 
+                                escolaridade = %s
+                                WHERE id_aluno = %s"""
+                            , (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
+                               nome_mae, estado_civil, escolaridade, id_aluno))
+
+                conn.commit()  # Confirma a transação
+                toast("Salvo com sucesso!", duration=2)
+                sleep(2)
+                self.principal()
+
+            except Exception as e:
+                toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
+                return False
 
 
 class NavigationManager:
@@ -154,6 +217,8 @@ class NavigationManager:
 
     def tela_editar(self, classe):
         self.screen_manager.current = 'cad_aluno'
+
+        tela_atual = self.screen_manager.current_screen
 
         try:
             conn = conectar()
@@ -169,22 +234,22 @@ class NavigationManager:
 
             consulta = cur.fetchone()
 
-            print(consulta)
-
             nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil, escolaridade = consulta
-            print(nome)
-            print(dt_nasc)
 
-            '''self.ids.idnome.text = nome
-            self.ids.idcpf.text = cpf
-            self.ids.iddtnasc.text = dt_nasc
-            self.ids.idend.text = endereco
-            self.ids.idemail.text = email
-            self.ids.idtel.text = telefone
-            self.ids.idnat.text = naturalidade
-            self.ids.idnomemae.text = nome_mae
-            self.ids.idestcivil.text = estado_civil
-            self.ids.idesc.text = escolaridade'''
+            tela_atual.ids.idaluno.text = id_aluno
+            tela_atual.ids.idnome.text = nome
+            tela_atual.ids.idcpf.text = cpf
+
+            dt_nasc = conf_data(dt_nasc)
+            tela_atual.ids.iddtnasc.text = dt_nasc
+
+            tela_atual.ids.idend.text = endereco
+            tela_atual.ids.idemail.text = email
+            tela_atual.ids.idtel.text = telefone
+            tela_atual.ids.idnat.text = naturalidade
+            tela_atual.ids.idnomemae.text = nome_mae
+            tela_atual.ids.idestcivil.text = estado_civil
+            tela_atual.ids.idesc.text = escolaridade
 
             conn.close()
 

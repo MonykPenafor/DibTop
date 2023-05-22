@@ -16,6 +16,12 @@
             BoxLayout:
                 orientation: 'horizontal'
                 spacing: 5
+
+                MDLabel:
+                    id: idaluno
+                    text: '-'
+                    font_size:  15
+
                 MDTextField:
                     id: idnome
                     hint_text:"Nome"
@@ -121,7 +127,7 @@
                     pos_hint: {'center_x':0.5}
                     size_hint_x: 0.75
                     font_size: 20
-                    on_release: root.guardar_dados()
+                    on_release: root.salvar_dados()
 
                 MDFillRoundFlatButton:
                     text: 'CANCELAR'
