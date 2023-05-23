@@ -127,6 +127,7 @@ class CadastrarAluno(MDScreen):
         idaluno = self.ids.idaluno.text
 
         if idaluno == '-':
+
             try:
                 nome = self.ids.idnome.text
                 cpf = self.ids.idcpf.text
@@ -144,8 +145,6 @@ class CadastrarAluno(MDScreen):
 
                 conn = conectar()
                 cur = conn.cursor()
-                print(nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
-                      nome_mae, estado_civil, escolaridade)
 
                 cur.execute("""INSERT into Aluno 
                 (nome,cpf,dt_nasc,endereco,email,telefone,
@@ -156,14 +155,12 @@ class CadastrarAluno(MDScreen):
 
                 conn.commit()  # Confirma a transação
                 toast("Salvo com sucesso!", duration=2)
-                sleep(2)
                 self.principal()
 
             except Exception as e:
                 toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
                 return False
         else:
-            print('tela editar')
             try:
                 id_aluno = idaluno
                 nome = self.ids.idnome.text
@@ -200,7 +197,6 @@ class CadastrarAluno(MDScreen):
 
                 conn.commit()  # Confirma a transação
                 toast("Salvo com sucesso!", duration=2)
-                sleep(2)
                 self.principal()
 
             except Exception as e:
@@ -251,7 +247,32 @@ class NavigationManager:
             tela_atual.ids.idestcivil.text = estado_civil
             tela_atual.ids.idesc.text = escolaridade
 
+            conn.commit()  # Confirma a transação
             conn.close()
+
+        except Exception as e:
+            toast(f"Error: {e}", duration=5)
+            print(e)
+
+    def deletar(self, classe):
+        try:
+            conn = conectar()
+            cur = conn.cursor()
+
+            id_aluno = int(classe.id_aluno)
+
+            cur.execute('''
+            DELETE
+            FROM aluno
+            WHERE id_aluno = %s;
+            ''', (id_aluno,))
+            conn.commit()  # Confirma a transação
+            conn.close()
+
+            toast("deletado", duration=5)
+
+            btn = classe.btnbuscar
+            btn.trigger_action()
 
         except Exception as e:
             toast(f"Error: {e}", duration=5)
@@ -262,8 +283,9 @@ class AlunoListItem(TwoLineAvatarIconListItem, EventDispatcher):
     nome = StringProperty('')
     cpf = StringProperty('')
 
-    def __init__(self, id_aluno='', nome='', cpf='', **kwargs):
+    def __init__(self, id_aluno='', nome='', cpf='', btnbuscar='', **kwargs):
         super(AlunoListItem, self).__init__(**kwargs)
+        self.btnbuscar = btnbuscar
         self.id_aluno = id_aluno
         self.nome = nome
         self.cpf = cpf
@@ -275,7 +297,7 @@ class ConsultarAluno(MDScreen):
         try:
             conn = conectar()
             cur = conn.cursor()
-            print(texto)
+
             cur.execute('''SELECT aluno.id_aluno, aluno.nome, aluno.cpf 
                            FROM aluno
                            WHERE aluno.nome LIKE %s
@@ -284,6 +306,7 @@ class ConsultarAluno(MDScreen):
             # Limpar a lista de alunos
             self.ids.aluno_list.clear_widgets()
 
+            btnbuscar = self.ids.btnbuscar
             consulta = cur.fetchall()
             print(consulta)
             # Iterar sobre os resultados da consulta
@@ -292,7 +315,7 @@ class ConsultarAluno(MDScreen):
                 print('Nome:', nome, 'CPF:', cpf)
 
                 # Criar um novo item de aluno
-                aluno_item = AlunoListItem(id_aluno=str(id_aluno), nome=nome, cpf=cpf)
+                aluno_item = AlunoListItem(id_aluno=str(id_aluno), nome=nome, cpf=cpf, btnbuscar=btnbuscar)
                 # Adicionar o item à lista
                 self.ids.aluno_list.add_widget(aluno_item)
 
