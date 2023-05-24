@@ -1,5 +1,3 @@
-from time import sleep
-
 from kivy.app import App
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
@@ -14,14 +12,22 @@ from datetime import datetime
 from kivymd.uix.list import TwoLineAvatarIconListItem
 from kivy.core.window import Keyboard
 
+
+# ------------------- REFERENCIA AOS ARQUIVOS KV ---------------------
+
 Builder.load_file("screens/screenmanager.kv")
 Builder.load_file("screens/loginscreen.kv")
 Builder.load_file("screens/mainscreen.kv")
 Builder.load_file("screens/crud.kv")
 Builder.load_file("screens/cadastrar_aluno.kv")
 Builder.load_file("screens/consultar_aluno.kv")
+Builder.load_file("screens/cadastrar_professor.kv")
+Builder.load_file("screens/consultar_professor.kv")
+Builder.load_file("screens/cadastrar_funcionario.kv")
+Builder.load_file("screens/consultar_funcionario.kv")
 
 
+# ----------------------  FUNÇÕES -------------------------------
 def conectar():
     conn = psycopg2.connect(
         host="localhost",
@@ -55,6 +61,91 @@ def conf_data(data):
 
     data = dia + '/' + mes + '/' + ano
     return data
+
+
+# ---------------------   CLASES   ----------------------------
+
+class AlunoListItem(TwoLineAvatarIconListItem, EventDispatcher):
+    nome = StringProperty('')
+    cpf = StringProperty('')
+
+    def __init__(self, id_aluno='', nome='', cpf='', btnbuscar=None, **kwargs):
+        super(AlunoListItem, self).__init__(**kwargs)
+        self.btnbuscar = btnbuscar
+        self.id_aluno = id_aluno
+        self.nome = nome
+        self.cpf = cpf
+
+    def deletar(self):
+        try:
+            conn = conectar()
+            cur = conn.cursor()
+
+            id_aluno = int(self.id_aluno)
+
+            cur.execute('''DELETE FROM aluno WHERE id_aluno = %s;''', (id_aluno,))
+            conn.commit()  # Confirma a transação
+            conn.close()
+
+            toast("Registro deletado", duration=5)
+
+            btn = self.btnbuscar
+            btn.trigger_action()
+
+        except Exception as e:
+            toast(f"Error: {e}", duration=5)
+            print(e)
+
+
+# ---------------------  CLASES MDSCREEN --------------------
+
+class NavigationManager:
+    def __init__(self, screen_manager):
+        self.screen_manager = screen_manager
+
+    def return_to_principal(self):
+        self.screen_manager.current = 'principal'
+
+    def tela_editar(self, classe):
+
+        self.screen_manager.current = 'cad_aluno'
+        tela_atual = self.screen_manager.current_screen
+
+        try:
+            conn = conectar()
+            cur = conn.cursor()
+
+            id_aluno = classe.id_aluno
+
+            cur.execute('''SELECT aluno.nome, aluno.cpf, aluno.dt_nasc, aluno.endereco, aluno.email, aluno.telefone, 
+                            aluno.naturalidade, aluno.nome_mae, aluno.estado_civil, aluno.escolaridade
+                           FROM aluno
+                           WHERE aluno.id_aluno = %s
+                           ''', (id_aluno,))
+
+            consulta = cur.fetchone()
+
+            nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil, escolaridade = consulta
+
+            tela_atual.ids.idaluno.text = id_aluno
+            tela_atual.ids.idnome.text = nome
+            tela_atual.ids.idcpf.text = cpf
+            dt_nasc = conf_data(dt_nasc)
+            tela_atual.ids.iddtnasc.text = dt_nasc
+            tela_atual.ids.idend.text = endereco
+            tela_atual.ids.idemail.text = email
+            tela_atual.ids.idtel.text = telefone
+            tela_atual.ids.idnat.text = naturalidade
+            tela_atual.ids.idnomemae.text = nome_mae
+            tela_atual.ids.idestcivil.text = estado_civil
+            tela_atual.ids.idesc.text = escolaridade
+
+            conn.commit()  # Confirma a transação
+            conn.close()
+
+        except Exception as e:
+            toast(f"Error: {e}", duration=5)
+            print(e)
 
 
 class MainScreenManager(ScreenManager):
@@ -105,7 +196,6 @@ class LoginScreen(MDScreen):
         if validar_login(login, senha):
             toast("Login e senha válidos", duration=2)
             self.manager.current = 'principal'
-            # toast('Bem vindo', duration=3)
         else:
             toast("Login ou senha inválidos", duration=5)
 
@@ -127,7 +217,6 @@ class CadastrarAluno(MDScreen):
         idaluno = self.ids.idaluno.text
 
         if idaluno == '-':
-
             try:
                 nome = self.ids.idnome.text
                 cpf = self.ids.idcpf.text
@@ -147,8 +236,7 @@ class CadastrarAluno(MDScreen):
                 cur = conn.cursor()
 
                 cur.execute("""INSERT into Aluno 
-                (nome,cpf,dt_nasc,endereco,email,telefone,
-                naturalidade,nome_mae,estado_civil,escolaridade) 
+                (nome,cpf,dt_nasc,endereco,email,telefone,naturalidade,nome_mae,estado_civil,escolaridade) 
                 Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
                       nome_mae, estado_civil, escolaridade))
@@ -159,7 +247,6 @@ class CadastrarAluno(MDScreen):
 
             except Exception as e:
                 toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
-                return False
         else:
             try:
                 id_aluno = idaluno
@@ -173,27 +260,16 @@ class CadastrarAluno(MDScreen):
                 nome_mae = self.ids.idnomemae.text
                 estado_civil = self.ids.idestcivil.text
                 escolaridade = self.ids.idesc.text
-
-                # Converte a string da data de nascimento para um objeto datetime
                 dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
 
                 conn = conectar()
                 cur = conn.cursor()
 
                 cur.execute("""UPDATE Aluno 
-                                SET nome = %s, 
-                                cpf = %s, 
-                                dt_nasc = %s, 
-                                endereco = %s, 
-                                email = %s, 
-                                telefone = %s,
-                                naturalidade = %s, 
-                                nome_mae = %s, 
-                                estado_civil = %s, 
-                                escolaridade = %s
-                                WHERE id_aluno = %s"""
-                            , (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
-                               nome_mae, estado_civil, escolaridade, id_aluno))
+                            SET nome = %s,cpf = %s,dt_nasc = %s,endereco = %s,email = %s,telefone = %s,
+                            naturalidade = %s,nome_mae = %s,estado_civil = %s,escolaridade = %s
+                            WHERE id_aluno = %s""", (nome, cpf, dt_nasc, endereco, email, telefone,
+                                                     naturalidade, nome_mae, estado_civil, escolaridade, id_aluno))
 
                 conn.commit()  # Confirma a transação
                 toast("Salvo com sucesso!", duration=2)
@@ -202,93 +278,6 @@ class CadastrarAluno(MDScreen):
             except Exception as e:
                 toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
                 return False
-
-
-class NavigationManager:
-    def __init__(self, screen_manager):
-        self.screen_manager = screen_manager
-
-    def return_to_principal(self):
-        self.screen_manager.current = 'principal'
-
-    def tela_editar(self, classe):
-        self.screen_manager.current = 'cad_aluno'
-
-        tela_atual = self.screen_manager.current_screen
-
-        try:
-            conn = conectar()
-            cur = conn.cursor()
-
-            id_aluno = classe.id_aluno
-
-            cur.execute('''SELECT aluno.nome, aluno.cpf, aluno.dt_nasc, aluno.endereco, aluno.email, aluno.telefone, 
-                            aluno.naturalidade, aluno.nome_mae, aluno.estado_civil, aluno.escolaridade
-                           FROM aluno
-                           WHERE aluno.id_aluno = %s
-                           ''', (id_aluno,))
-
-            consulta = cur.fetchone()
-
-            nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil, escolaridade = consulta
-
-            tela_atual.ids.idaluno.text = id_aluno
-            tela_atual.ids.idnome.text = nome
-            tela_atual.ids.idcpf.text = cpf
-
-            dt_nasc = conf_data(dt_nasc)
-            tela_atual.ids.iddtnasc.text = dt_nasc
-
-            tela_atual.ids.idend.text = endereco
-            tela_atual.ids.idemail.text = email
-            tela_atual.ids.idtel.text = telefone
-            tela_atual.ids.idnat.text = naturalidade
-            tela_atual.ids.idnomemae.text = nome_mae
-            tela_atual.ids.idestcivil.text = estado_civil
-            tela_atual.ids.idesc.text = escolaridade
-
-            conn.commit()  # Confirma a transação
-            conn.close()
-
-        except Exception as e:
-            toast(f"Error: {e}", duration=5)
-            print(e)
-
-    def deletar(self, classe):
-        try:
-            conn = conectar()
-            cur = conn.cursor()
-
-            id_aluno = int(classe.id_aluno)
-
-            cur.execute('''
-            DELETE
-            FROM aluno
-            WHERE id_aluno = %s;
-            ''', (id_aluno,))
-            conn.commit()  # Confirma a transação
-            conn.close()
-
-            toast("deletado", duration=5)
-
-            btn = classe.btnbuscar
-            btn.trigger_action()
-
-        except Exception as e:
-            toast(f"Error: {e}", duration=5)
-            print(e)
-
-
-class AlunoListItem(TwoLineAvatarIconListItem, EventDispatcher):
-    nome = StringProperty('')
-    cpf = StringProperty('')
-
-    def __init__(self, id_aluno='', nome='', cpf='', btnbuscar='', **kwargs):
-        super(AlunoListItem, self).__init__(**kwargs)
-        self.btnbuscar = btnbuscar
-        self.id_aluno = id_aluno
-        self.nome = nome
-        self.cpf = cpf
 
 
 class ConsultarAluno(MDScreen):
@@ -308,12 +297,10 @@ class ConsultarAluno(MDScreen):
 
             btnbuscar = self.ids.btnbuscar
             consulta = cur.fetchall()
-            print(consulta)
+
             # Iterar sobre os resultados da consulta
             for row in consulta:
                 id_aluno, nome, cpf = row
-                print('Nome:', nome, 'CPF:', cpf)
-
                 # Criar um novo item de aluno
                 aluno_item = AlunoListItem(id_aluno=str(id_aluno), nome=nome, cpf=cpf, btnbuscar=btnbuscar)
                 # Adicionar o item à lista
@@ -326,6 +313,24 @@ class ConsultarAluno(MDScreen):
             toast(f"Error: {e}", duration=5)
             print(e)
 
+
+class CadastrarProfessor(MDScreen):
+    pass
+
+
+class ConsultarProfessor(MDScreen):
+    pass
+
+
+class CadastrarFuncionario(MDScreen):
+    pass
+
+
+class ConsultarFuncionario(MDScreen):
+    pass
+
+
+# --------------------------- APP ---------------------------------
 
 class DibTopApp(MDApp):
 
