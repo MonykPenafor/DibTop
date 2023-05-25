@@ -1,8 +1,8 @@
 from kivy.app import App
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
-from kivy.properties import StringProperty, ObjectProperty
-from kivymd.uix.screenmanager import ScreenManager
+from kivy.properties import StringProperty
+from kivy.uix.screenmanager import ScreenManager, FadeTransition, NoTransition
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
 from kivymd.app import MDApp
@@ -11,7 +11,6 @@ from kivymd.toast import toast
 from datetime import datetime
 from kivymd.uix.list import TwoLineAvatarIconListItem
 from kivy.core.window import Keyboard
-
 
 # ------------------- REFERENCIA AOS ARQUIVOS KV ---------------------
 
@@ -65,40 +64,6 @@ def conf_data(data):
 
 # ---------------------   CLASES   ----------------------------
 
-class AlunoListItem(TwoLineAvatarIconListItem, EventDispatcher):
-    nome = StringProperty('')
-    cpf = StringProperty('')
-
-    def __init__(self, id_aluno='', nome='', cpf='', btnbuscar=None, **kwargs):
-        super(AlunoListItem, self).__init__(**kwargs)
-        self.btnbuscar = btnbuscar
-        self.id_aluno = id_aluno
-        self.nome = nome
-        self.cpf = cpf
-
-    def deletar(self):
-        try:
-            conn = conectar()
-            cur = conn.cursor()
-
-            id_aluno = int(self.id_aluno)
-
-            cur.execute('''DELETE FROM aluno WHERE id_aluno = %s;''', (id_aluno,))
-            conn.commit()  # Confirma a transação
-            conn.close()
-
-            toast("Registro deletado", duration=5)
-
-            btn = self.btnbuscar
-            btn.trigger_action()
-
-        except Exception as e:
-            toast(f"Error: {e}", duration=5)
-            print(e)
-
-
-# ---------------------  CLASES MDSCREEN --------------------
-
 class NavigationManager:
     def __init__(self, screen_manager):
         self.screen_manager = screen_manager
@@ -151,6 +116,40 @@ class NavigationManager:
 class MainScreenManager(ScreenManager):
     pass
 
+
+class AlunoListItem(TwoLineAvatarIconListItem, EventDispatcher):
+    nome = StringProperty('')
+    cpf = StringProperty('')
+
+    def __init__(self, id_aluno='', nome='', cpf='', btnbuscar=None, **kwargs):
+        super(AlunoListItem, self).__init__(**kwargs)
+        self.btnbuscar = btnbuscar
+        self.id_aluno = id_aluno
+        self.nome = nome
+        self.cpf = cpf
+
+    def deletar(self):
+        try:
+            conn = conectar()
+            cur = conn.cursor()
+
+            id_aluno = int(self.id_aluno)
+
+            cur.execute('''DELETE FROM aluno WHERE id_aluno = %s;''', (id_aluno,))
+            conn.commit()  # Confirma a transação
+            conn.close()
+
+            toast("Registro deletado", duration=5)
+
+            btn = self.btnbuscar
+            btn.trigger_action()
+
+        except Exception as e:
+            toast(f"Error: {e}", duration=5)
+            print(e)
+
+
+# ---------------------  CLASES MDSCREEN --------------------
 
 class MainScreen(MDScreen):
     # Window.size = (700, 550)
@@ -209,6 +208,7 @@ class CrudScreen(MDScreen):
 
 
 class CadastrarAluno(MDScreen):
+
     def principal(self):
         self.manager.current = 'principal'
 
@@ -342,7 +342,7 @@ class DibTopApp(MDApp):
         # Window.maximize()
         self.theme_cls.primary_palette = "Green"
 
-        sm = MainScreenManager()
+        sm = MainScreenManager(transition=NoTransition())
         sm.current = 'login'
 
         self.navigation = NavigationManager(sm)  # Passando a instância de MainScreenManager para NavigationManager
