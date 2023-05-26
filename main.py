@@ -2,7 +2,10 @@ from kivy.app import App
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.properties import StringProperty
-from kivy.uix.screenmanager import ScreenManager, FadeTransition, NoTransition
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.screenmanager import ScreenManager, NoTransition
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
 from kivymd.app import MDApp
@@ -149,10 +152,34 @@ class AlunoListItem(TwoLineAvatarIconListItem, EventDispatcher):
             print(e)
 
 
+class HoverButton(Button):
+    def __init__(self, **kwargs):
+        super(HoverButton, self).__init__(**kwargs)
+        self.background_normal = ''  # Define background_normal como uma string vazia para remover a cor de fundo padrão
+        self.bind(on_enter=self.on_enter, on_leave=self.on_leave)
+        Window.bind(mouse_pos=self.on_mouse_pos)
+
+    def on_mouse_pos(self, *args):
+        if self.collide_point(*self.to_widget(*args[1])):
+            self.on_enter()
+        else:
+            self.on_leave()
+
+    def on_enter(self, *args):
+        self.background_color = (0, 0.737, 0.831, 1)  # cor hover bg
+        self.color = (0.129, 0.588, 0.953, 1)  # cor do texto hover
+
+    def on_leave(self, *args):
+        self.background_color = (0.247, 0.318, 0.71, 1)  # cor bg
+        self.color = 'white'  # cor do texto
+
+
 # ---------------------  CLASES MDSCREEN --------------------
 
 class MainScreen(MDScreen):
     # Window.size = (700, 550)
+    def on_start(self):
+        self.root.ids.toolbar.custom_color = [1, 1, 1, 1]
 
     def crud(self):
         self.manager.current = 'crud'
@@ -339,11 +366,12 @@ class DibTopApp(MDApp):
         self.navigation = None
 
     def build(self):
-        # Window.maximize()
+        Window.clearcolor = (1, 1, 1, 1)
+        Window.maximize()
         self.theme_cls.primary_palette = "Green"
 
         sm = MainScreenManager(transition=NoTransition())
-        sm.current = 'login'
+        # sm.current = 'login'
 
         self.navigation = NavigationManager(sm)  # Passando a instância de MainScreenManager para NavigationManager
         return sm

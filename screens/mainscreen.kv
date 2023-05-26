@@ -1,57 +1,118 @@
 <MainScreen>
     MDBoxLayout:
         orientation: 'vertical'
-        radius: [25, 0, 0, 0]
-        md_bg_color: 'white'
-
-        MDTopAppBar:
-            id: toolbar
-            title: "DIBTOP"
-            theme_text_color: "Custom"
-            elevation: 0
-            pos_hint: {'top': 1}
-            md_bg_color: 0.19, 0.21, 0.22, 1
-            text_color: "white"
 
         MDBoxLayout:
-            orientation: 'horizontal'
-            padding: 60, 40, 60, 40
+            md_bg_color: 0.19, 0.21, 0.22, 1
+            size_hint_y: 0.05
+            MDLabel:
+                text: "CADASTRO DE ALUNO"
+                halign: "center"
+                pos_hint: {'center_x': 0.5, 'center_y': 0.75}
+                font_size:  15
+                color: 'white'
+
+        MDBoxLayout:
+            md_bg_color: 'white'
+            size_hint_y: 0.09
+
             MDBoxLayout:
-                orientation: 'vertical'
-                spacing: 40
+                orientation: 'horizontal'
+                spacing: 0.5
                 #pos_hint: {"center_x": 0.46, "center_y": 0.52}
-                MDRaisedButton:
+
+                HoverButton:
                     id: alunobtn
                     text: "ALUNOS"
-                    md_bg_color: "red"
-                    padding: 60, 40, 60, 40
-                    font_size: 40
+                    md_bg_color: "gray"
+                    font_size: 20
+                    elevation: 0
                     on_release: root.crud()
 
-                MDRaisedButton:
-                    id:turmabtn
-                    text: "TURMAS"
-                    md_bg_color: "blue"
-                    padding: 60, 40, 60, 40
-                    font_size: 39
+                HoverButton:
+                    id: alunobtn
+                    text: "ALUNOS"
+                    font_size: 20
+                    elevation: 0
+                    on_release: root.crud()
+                HoverButton:
+                    id: alunobtn
+                    text: "ALUNOS"
+                    font_size: 20
+                    elevation: 0
+                    on_release: root.crud()
+                HoverButton:
+                    id: alunobtn
+                    text: "ALUNOS"
+                    font_size: 10
+                    elevation: 0
                     on_release: root.crud()
 
-                MDRaisedButton:
-                    id: cursobtn
-                    text: "CURSOS"
-                    md_bg_color: "green"
-                    padding: 60, 40, 60, 40
-                    font_size: 40
-                    on_release: root.crud()
+        MDBoxLayout:
+            orientation: 'vertical'
+            md_bg_color: 'white'
 
             MDBoxLayout:
-                orientation: 'vertical'
-                MDRectangleFlatIconButton:
-                    icon: "android"
-                    text: "GRADE DE HORÁRIOS"
-                    md_bg_color: "green"
-                    theme_text_color: "Custom"
-                    text_color: "black"
-                    #line_color: "black"
-                    theme_icon_color: "Custom"
-                    icon_color: "black"
+                orientation: 'horizontal'
+                padding: 60, 40, 60, 40
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    spacing: 10
+                    #pos_hint: {"center_x": 0.46, "center_y": 0.52}
+                    HoverButton:
+                        id: alunobtn
+                        text: "ALUNOS"
+                        md_bg_color: "red"
+                        font_size: 40
+                        elevation: 0
+                        on_release: root.crud()
+
+                    HoverButton:
+                        id:turmabtn
+                        text: "TURMAS"
+                        md_bg_color: "blue"
+                        elevation: 0
+                        font_size: 39
+                        on_release: root.crud()
+
+                    HoverButton:
+                        id: cursobtn
+                        text: "CURSOS"
+                        md_bg_color: "green"
+                        elevation: 0
+                        font_size: 40
+                        on_release: root.crud()
+
+                MDBoxLayout:
+                    orientation: 'vertical'
+                    MDRectangleFlatIconButton:
+                        icon: "android"
+                        text: "GRADE DE HORÁRIOS"
+                        md_bg_color: "green"
+                        theme_text_color: "Custom"
+                        text_color: "black"
+                        #line_color: "black"
+                        theme_icon_color: "Custom"
+                        icon_color: "black"
+
+
+
+
+
+
+        MDBoxLayout:
+            md_bg_color: 0.19, 0.21, 0.22, 1
+            size_hint_y: 0.05
+            MDLabel:
+                text: "CADASTRO DE ALUNO"
+                halign: "center"
+                pos_hint: {'center_x': 0.5, 'center_y': 0.75}
+                font_size:  15
+                color: 'white'
+
+
+
+
+
+
+
