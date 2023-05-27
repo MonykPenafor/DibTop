@@ -163,8 +163,8 @@ class HoverButton(Button):
 class MainScreen(MDScreen):
     # Window.size = (700, 550)
     def crud(self, nome):
-        self.manager.current = 'crud'
         self.manager.get_screen('crud').btn_name = nome
+        self.manager.current = 'crud'
 
 
 class LoginScreen(MDScreen):
@@ -179,13 +179,43 @@ class LoginScreen(MDScreen):
 
 
 class CrudScreen(MDScreen):
-    btn_name = StringProperty('nf')
+    btn_name = StringProperty('')
 
-    def cadastrar(self):
-        self.screen_manager.current = "cad_aluno"
+    def cadastrar(self, btn_name=None):
+        btn_name = btn_name or self.btn_name
 
-    def consultar(self):
-        self.screen_manager.current = "con_aluno"
+        if btn_name == 'aluno':
+            self.manager.current = "cad_aluno"
+        elif btn_name == 'turma':
+            self.manager.current = ''
+        elif btn_name == 'curso':
+            self.manager.current = ''
+        elif btn_name == 'prof':
+            self.manager.current = 'cad_professor'
+        elif btn_name == 'func':
+            self.manager.current = 'cad_funcionario'
+        elif btn_name == 'pag':
+            self.manager.current = ''
+        else:
+            print('deu erro')
+
+    def consultar(self, btn_name=None):
+        btn_name = btn_name or self.btn_name
+
+        if btn_name == 'aluno':
+            self.manager.current = "con_aluno"
+        elif btn_name == 'turma':
+            self.manager.current = ''
+        elif btn_name == 'curso':
+            self.manager.current = ''
+        elif btn_name == 'prof':
+            self.manager.current = 'con_professor'
+        elif btn_name == 'func':
+            self.manager.current = 'con_funcionario'
+        elif btn_name == 'pag':
+            self.manager.current = ''
+        else:
+            print('deu erro')
 
 
 class CadastrarAluno(MDScreen):
