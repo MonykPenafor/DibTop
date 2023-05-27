@@ -60,46 +60,84 @@ class NavigationManager:
     def return_to_principal(self):
         self.screen_manager.current = 'principal'
 
-    def tela_editar(self, classe):
+    def tela_editar(self, instancia):
 
-        self.screen_manager.current = 'cad_aluno'
-        tela_atual = self.screen_manager.current_screen
+        if isinstance(instancia, AlunoListItem):
 
-        try:
-            conn = conectar()
-            cur = conn.cursor()
+            self.screen_manager.current = 'cad_aluno'
+            tela_atual = self.screen_manager.current_screen
 
-            id_aluno = classe.id_aluno
+            try:
+                conn = conectar()
+                cur = conn.cursor()
 
-            cur.execute('''SELECT aluno.nome, aluno.cpf, aluno.dt_nasc, aluno.endereco, aluno.email, aluno.telefone, 
-                            aluno.naturalidade, aluno.nome_mae, aluno.estado_civil, aluno.escolaridade
-                           FROM aluno
-                           WHERE aluno.id_aluno = %s
-                           ''', (id_aluno,))
+                id_aluno = instancia.id_aluno
 
-            consulta = cur.fetchone()
+                cur.execute('''SELECT aluno.nome, aluno.cpf, aluno.dt_nasc, aluno.endereco, aluno.email, aluno.telefone, 
+                                aluno.naturalidade, aluno.nome_mae, aluno.estado_civil, aluno.escolaridade
+                               FROM aluno
+                               WHERE aluno.id_aluno = %s
+                               ''', (id_aluno,))
 
-            nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil, escolaridade = consulta
+                consulta = cur.fetchone()
 
-            tela_atual.ids.idaluno.text = id_aluno
-            tela_atual.ids.idnome.text = nome
-            tela_atual.ids.idcpf.text = cpf
-            dt_nasc = conf_data(dt_nasc)
-            tela_atual.ids.iddtnasc.text = dt_nasc
-            tela_atual.ids.idend.text = endereco
-            tela_atual.ids.idemail.text = email
-            tela_atual.ids.idtel.text = telefone
-            tela_atual.ids.idnat.text = naturalidade
-            tela_atual.ids.idnomemae.text = nome_mae
-            tela_atual.ids.idestcivil.text = estado_civil
-            tela_atual.ids.idesc.text = escolaridade
+                nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil, escolaridade = consulta
 
-            conn.commit()  # Confirma a transação
-            conn.close()
+                tela_atual.ids.idaluno.text = id_aluno
+                tela_atual.ids.idnome.text = nome
+                tela_atual.ids.idcpf.text = cpf
+                dt_nasc = conf_data(dt_nasc)
+                tela_atual.ids.iddtnasc.text = dt_nasc
+                tela_atual.ids.idend.text = endereco
+                tela_atual.ids.idemail.text = email
+                tela_atual.ids.idtel.text = telefone
+                tela_atual.ids.idnat.text = naturalidade
+                tela_atual.ids.idnomemae.text = nome_mae
+                tela_atual.ids.idestcivil.text = estado_civil
+                tela_atual.ids.idesc.text = escolaridade
 
-        except Exception as e:
-            toast(f"Error: {e}", duration=5)
-            print(e)
+                conn.commit()  # Confirma a transação
+                conn.close()
+
+            except Exception as e:
+                toast(f"Error: {e}", duration=5)
+                print(e)
+
+        if isinstance(instancia, ProfListItem):
+
+            self.screen_manager.current = 'cad_professor'
+            tela_atual = self.screen_manager.current_screen
+
+            try:
+                conn = conectar()
+                cur = conn.cursor()
+
+                id_prof = instancia.id_professor
+
+                cur.execute('''SELECT professor.nome, professor.cpf, professor.area_ensino, 
+                                professor.endereco, professor.email, professor.telefone
+                               FROM professor
+                               WHERE professor.id_professor = %s
+                               ''', (id_prof,))
+
+                consulta = cur.fetchone()
+
+                nome, cpf, area_ensino, endereco, email, telefone = consulta
+
+                tela_atual.ids.idprof.text = id_prof
+                tela_atual.ids.nome.text = nome
+                tela_atual.ids.cpf.text = cpf
+                tela_atual.ids.ae.text = cpf
+                tela_atual.ids.end.text = endereco
+                tela_atual.ids.email.text = email
+                tela_atual.ids.tel.text = telefone
+
+                conn.commit()  # Confirma a transação
+                conn.close()
+
+            except Exception as e:
+                toast(f"Error: {e}", duration=5)
+                print(e)
 
 
 class MainScreenManager(ScreenManager):
@@ -126,6 +164,42 @@ class AlunoListItem(TwoLineAvatarIconListItem, EventDispatcher):
                 id_aluno = int(self.id_aluno)
 
                 cur.execute('''DELETE FROM aluno WHERE id_aluno = %s;''', (id_aluno,))
+                conn.commit()
+                conn.close()
+
+                toast("Registro deletado", duration=5)
+
+                btn = self.btnbuscar
+                btn.trigger_action()
+
+            except Exception as e:
+                toast(f"Error: {e}", duration=5)
+                print(e)
+
+        popup = ConfirmationPopup(callback=confirmar_exclusao)
+        popup.open()
+
+
+class ProfListItem(TwoLineAvatarIconListItem, EventDispatcher):
+    nome = StringProperty('')
+    cpf = StringProperty('')
+
+    def __init__(self, id_professor='', nome='', cpf='', btnbuscar=None, **kwargs):
+        super(ProfListItem, self).__init__(**kwargs)
+        self.btnbuscar = btnbuscar
+        self.id_professor = id_professor
+        self.nome = nome
+        self.cpf = cpf
+
+    def deletar(self):
+        def confirmar_exclusao():
+            try:
+                conn = conectar()
+                cur = conn.cursor()
+
+                id_professor = int(self.id_professor)
+
+                cur.execute('''DELETE FROM professor WHERE id_professor = %s;''', (id_professor,))
                 conn.commit()
                 conn.close()
 
@@ -169,25 +243,13 @@ class ConfirmationPopup(Popup):
         super(ConfirmationPopup, self).__init__(**kwargs)
         self.callback = callback
 
-        content = BoxLayout(orientation='vertical')
-        content.add_widget(Label(text='Deseja mesmo excluir este registro?'))
-
-        confirm_button = Button(text='Sim', on_release=self.confirm)
-        cancel_button = Button(text='Não', on_release=self.dismiss)
-
-        content.add_widget(confirm_button)
-        content.add_widget(cancel_button)
-
-        self.title = 'Confirmação'
-        self.content = content
-        self.size_hint = (None, None)
-        self.size = (400, 200)
-
     def confirm(self, instance):
         self.callback()
         self.dismiss()
 
+
 # ---------------------  CLASES MDSCREEN --------------------
+
 
 class MainScreen(MDScreen):
     # Window.size = (700, 550)
@@ -387,7 +449,7 @@ class CadastrarProfessor(MDScreen):
                 toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
         else:
             try:
-                # id_aluno = idprof
+                id_professor = idprof
                 nome = self.ids.nome.text
                 cpf = self.ids.cpf.text
                 area = self.ids.ae.text
@@ -400,7 +462,7 @@ class CadastrarProfessor(MDScreen):
 
                 cur.execute("""UPDATE Professor
                             SET nome = %s,cpf = %s,area_ensino = %s,endereco = %s,email = %s,telefone = %s
-                            WHERE id_professor = %s""", (nome, cpf, area, endereco, email, telefone))  # id_professor))
+                            WHERE id_professor = %s""", (nome, cpf, area, endereco, email, telefone, id_professor))
 
                 conn.commit()  # Confirma a transação
                 toast("Salvo com sucesso!", duration=2)
@@ -430,11 +492,11 @@ class ConsultarProfessor(MDScreen):
 
             # Iterar sobre os resultados da consulta
             for row in consulta:
-                id_aluno, nome, cpf = row
+                id_professor, nome, cpf = row
                 # Criar um novo item de aluno
-                aluno_item = AlunoListItem(id_aluno=str(id_aluno), nome=nome, cpf=cpf, btnbuscar=btnbuscar)
+                prof_item = ProfListItem(id_professor=str(id_professor), nome=nome, cpf=cpf, btnbuscar=btnbuscar)
                 # Adicionar o item à lista
-                self.ids.aluno_list.add_widget(aluno_item)
+                self.ids.prof_list.add_widget(prof_item)
 
             # Fechar a conexão com o banco de dados
             conn.close()
@@ -442,7 +504,6 @@ class ConsultarProfessor(MDScreen):
         except Exception as e:
             toast(f"Error: {e}", duration=5)
             print(e)
-
 
 
 class CadastrarFuncionario(MDScreen):
@@ -473,7 +534,7 @@ class DibTopApp(MDApp):
         Builder.load_file("screens/consultar_professor.kv")
         Builder.load_file("screens/cadastrar_funcionario.kv")
         Builder.load_file("screens/consultar_funcionario.kv")
-
+        Builder.load_file("screens/popup.kv")
         Window.clearcolor = (1, 1, 1, 1)
         Window.maximize()
         self.theme_cls.primary_palette = "Green"
