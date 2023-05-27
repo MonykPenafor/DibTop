@@ -2,9 +2,7 @@ from kivy.app import App
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.properties import StringProperty
-from kivy.uix.behaviors import ButtonBehavior
 from kivy.uix.button import Button
-from kivy.uix.label import Label
 from kivy.uix.screenmanager import ScreenManager, NoTransition
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
@@ -13,20 +11,6 @@ import psycopg2
 from kivymd.toast import toast
 from datetime import datetime
 from kivymd.uix.list import TwoLineAvatarIconListItem
-from kivy.core.window import Keyboard
-
-# ------------------- REFERENCIA AOS ARQUIVOS KV ---------------------
-
-Builder.load_file("screens/screenmanager.kv")
-Builder.load_file("screens/loginscreen.kv")
-Builder.load_file("screens/mainscreen.kv")
-Builder.load_file("screens/crud.kv")
-Builder.load_file("screens/cadastrar_aluno.kv")
-Builder.load_file("screens/consultar_aluno.kv")
-Builder.load_file("screens/cadastrar_professor.kv")
-Builder.load_file("screens/consultar_professor.kv")
-Builder.load_file("screens/cadastrar_funcionario.kv")
-Builder.load_file("screens/consultar_funcionario.kv")
 
 
 # ----------------------  FUNÇÕES -------------------------------
@@ -178,12 +162,9 @@ class HoverButton(Button):
 
 class MainScreen(MDScreen):
     # Window.size = (700, 550)
-    # def on_start(self):
-    #   self.root.ids.toolbar.custom_color = [1, 1, 1, 1]
-
-    def crud(self, btn_name):
+    def crud(self, nome):
         self.manager.current = 'crud'
-        print(btn_name)
+        self.manager.get_screen('crud').btn_name = nome
 
 
 class LoginScreen(MDScreen):
@@ -198,13 +179,13 @@ class LoginScreen(MDScreen):
 
 
 class CrudScreen(MDScreen):
-    btn_name = ''
+    btn_name = StringProperty('nf')
 
     def cadastrar(self):
-        self.manager.current = "cad_aluno"
+        self.screen_manager.current = "cad_aluno"
 
     def consultar(self):
-        self.manager.current = "con_aluno"
+        self.screen_manager.current = "con_aluno"
 
 
 class CadastrarAluno(MDScreen):
@@ -339,6 +320,17 @@ class DibTopApp(MDApp):
         self.navigation = None
 
     def build(self):
+        Builder.load_file("screens/screenmanager.kv")
+        Builder.load_file("screens/loginscreen.kv")
+        Builder.load_file("screens/mainscreen.kv")
+        Builder.load_file("screens/crud.kv")
+        Builder.load_file("screens/cadastrar_aluno.kv")
+        Builder.load_file("screens/consultar_aluno.kv")
+        Builder.load_file("screens/cadastrar_professor.kv")
+        Builder.load_file("screens/consultar_professor.kv")
+        Builder.load_file("screens/cadastrar_funcionario.kv")
+        Builder.load_file("screens/consultar_funcionario.kv")
+
         Window.clearcolor = (1, 1, 1, 1)
         Window.maximize()
         self.theme_cls.primary_palette = "Green"

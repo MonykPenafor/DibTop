@@ -10,7 +10,7 @@
             halign: "center"
             pos_hint: {'center_x': 0.5, 'center_y': 0.75}
             font_size:  15
-            color: 'white'
+            color: 'black'
 
         MDFillRoundFlatButton:
             text: "CADASTRAR"
@@ -35,5 +35,10 @@
 
         MDTextButton:
             text: 'Cancelar'
+            on_release: app.navigation.return_to_principal()
+            #pos_hint: {'center_x': .5}
+
+        MDTextButton:
+            text: root.btn_name
             on_release: app.navigation.return_to_principal()
             #pos_hint: {'center_x': .5}
