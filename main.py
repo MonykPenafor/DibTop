@@ -1,4 +1,3 @@
-from kivy.app import App
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.properties import StringProperty
@@ -326,7 +325,8 @@ class ConsultarAluno(MDScreen):
 
 
 class CadastrarProfessor(MDScreen):
-    pass
+    def salvar_dados(self):
+        print('salvou')
 
 
 class ConsultarProfessor(MDScreen):
@@ -334,7 +334,8 @@ class ConsultarProfessor(MDScreen):
 
 
 class CadastrarFuncionario(MDScreen):
-    pass
+    def salvar_dados(self):
+        print('salvou')
 
 
 class ConsultarFuncionario(MDScreen):
