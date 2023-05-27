@@ -1,7 +1,10 @@
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.properties import StringProperty
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, NoTransition
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
@@ -115,24 +118,28 @@ class AlunoListItem(TwoLineAvatarIconListItem, EventDispatcher):
         self.cpf = cpf
 
     def deletar(self):
-        try:
-            conn = conectar()
-            cur = conn.cursor()
+        def confirmar_exclusao():
+            try:
+                conn = conectar()
+                cur = conn.cursor()
 
-            id_aluno = int(self.id_aluno)
+                id_aluno = int(self.id_aluno)
 
-            cur.execute('''DELETE FROM aluno WHERE id_aluno = %s;''', (id_aluno,))
-            conn.commit()  # Confirma a transação
-            conn.close()
+                cur.execute('''DELETE FROM aluno WHERE id_aluno = %s;''', (id_aluno,))
+                conn.commit()
+                conn.close()
 
-            toast("Registro deletado", duration=5)
+                toast("Registro deletado", duration=5)
 
-            btn = self.btnbuscar
-            btn.trigger_action()
+                btn = self.btnbuscar
+                btn.trigger_action()
 
-        except Exception as e:
-            toast(f"Error: {e}", duration=5)
-            print(e)
+            except Exception as e:
+                toast(f"Error: {e}", duration=5)
+                print(e)
+
+        popup = ConfirmationPopup(callback=confirmar_exclusao)
+        popup.open()
 
 
 class HoverButton(Button):
@@ -156,6 +163,29 @@ class HoverButton(Button):
         self.background_color = (0.247, 0.318, 0.71, 1)  # cor bg
         self.color = 'white'  # cor do texto
 
+
+class ConfirmationPopup(Popup):
+    def __init__(self, callback, **kwargs):
+        super(ConfirmationPopup, self).__init__(**kwargs)
+        self.callback = callback
+
+        content = BoxLayout(orientation='vertical')
+        content.add_widget(Label(text='Deseja mesmo excluir este registro?'))
+
+        confirm_button = Button(text='Sim', on_release=self.confirm)
+        cancel_button = Button(text='Não', on_release=self.dismiss)
+
+        content.add_widget(confirm_button)
+        content.add_widget(cancel_button)
+
+        self.title = 'Confirmação'
+        self.content = content
+        self.size_hint = (None, None)
+        self.size = (400, 200)
+
+    def confirm(self, instance):
+        self.callback()
+        self.dismiss()
 
 # ---------------------  CLASES MDSCREEN --------------------
 
@@ -325,12 +355,94 @@ class ConsultarAluno(MDScreen):
 
 
 class CadastrarProfessor(MDScreen):
+    def principal(self):
+        self.manager.current = 'principal'
+
     def salvar_dados(self):
-        print('salvou')
+
+        idprof = self.ids.idprof.text
+
+        if idprof == '-':
+            try:
+                nome = self.ids.nome.text
+                cpf = self.ids.cpf.text
+                area = self.ids.ae.text
+                endereco = self.ids.end.text
+                email = self.ids.email.text
+                telefone = self.ids.tel.text
+
+                conn = conectar()
+                cur = conn.cursor()
+
+                cur.execute("""INSERT into Professor
+                (nome, cpf, area_ensino, endereco, email, telefone)
+                Values (%s, %s, %s, %s, %s, %s)
+                """, (nome, cpf, area, endereco, email, telefone))
+
+                conn.commit()  # Confirma a transação
+                toast("Salvo com sucesso!", duration=2)
+                self.principal()
+
+            except Exception as e:
+                toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
+        else:
+            try:
+                # id_aluno = idprof
+                nome = self.ids.nome.text
+                cpf = self.ids.cpf.text
+                area = self.ids.ae.text
+                endereco = self.ids.end.text
+                email = self.ids.email.text
+                telefone = self.ids.tel.text
+
+                conn = conectar()
+                cur = conn.cursor()
+
+                cur.execute("""UPDATE Professor
+                            SET nome = %s,cpf = %s,area_ensino = %s,endereco = %s,email = %s,telefone = %s
+                            WHERE id_professor = %s""", (nome, cpf, area, endereco, email, telefone))  # id_professor))
+
+                conn.commit()  # Confirma a transação
+                toast("Salvo com sucesso!", duration=2)
+                self.principal()
+
+            except Exception as e:
+                toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
+                return False
 
 
 class ConsultarProfessor(MDScreen):
-    pass
+    def pesquisar(self, texto):
+        try:
+            conn = conectar()
+            cur = conn.cursor()
+
+            cur.execute('''SELECT professor.id_professor, professor.nome, professor.cpf 
+                           FROM professor
+                           WHERE professor.nome LIKE %s
+                           ORDER BY 2''', ('%' + texto + '%',))
+
+            # Limpar a lista de alunos
+            self.ids.prof_list.clear_widgets()
+
+            btnbuscar = self.ids.btnbuscar
+            consulta = cur.fetchall()
+
+            # Iterar sobre os resultados da consulta
+            for row in consulta:
+                id_aluno, nome, cpf = row
+                # Criar um novo item de aluno
+                aluno_item = AlunoListItem(id_aluno=str(id_aluno), nome=nome, cpf=cpf, btnbuscar=btnbuscar)
+                # Adicionar o item à lista
+                self.ids.aluno_list.add_widget(aluno_item)
+
+            # Fechar a conexão com o banco de dados
+            conn.close()
+
+        except Exception as e:
+            toast(f"Error: {e}", duration=5)
+            print(e)
+
 
 
 class CadastrarFuncionario(MDScreen):
