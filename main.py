@@ -243,7 +243,7 @@ class ConfirmationPopup(Popup):
         super(ConfirmationPopup, self).__init__(**kwargs)
         self.callback = callback
 
-    def confirm(self, instance):
+    def confirm(self):
         self.callback()
         self.dismiss()
 
@@ -507,8 +507,38 @@ class ConsultarProfessor(MDScreen):
 
 
 class CadastrarFuncionario(MDScreen):
+    def principal(self):
+        self.manager.current = 'principal'
+
     def salvar_dados(self):
-        print('salvou')
+
+        # idfunc = self.ids.idfunc.text
+
+        try:
+            nome = self.ids.nome.text
+            login = self.ids.login.text
+            senha = self.ids.senha.text
+            senha2 = self.ids.senha2.text
+
+            if senha == senha2:
+
+                conn = conectar()
+                cur = conn.cursor()
+
+                cur.execute("""INSERT into Funcionario
+                (nome, login, senha)
+                Values (%s, %s, %s)
+                """, (nome, login, senha))
+
+                conn.commit()  # Confirma a transação
+                toast("Salvo com sucesso!", duration=2)
+                self.principal()
+
+            else:
+                toast('senhas não coincidem', duration=4)
+
+        except Exception as e:
+            toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
 
 
 class ConsultarFuncionario(MDScreen):
