@@ -167,7 +167,7 @@ class HoverButton(Button):
 
     def on_enter(self, *args):
         self.background_color = (0, 0.737, 0.831, 1)  # cor hover bg
-        self.color = (0.129, 0.588, 0.953, 1)  # cor do texto hover
+        self.color = 'white'  # cor do texto hover
 
     def on_leave(self, *args):
         self.background_color = (0.247, 0.318, 0.71, 1)  # cor bg
@@ -178,44 +178,15 @@ class HoverButton(Button):
 
 class MainScreen(MDScreen):
     # Window.size = (700, 550)
-    def on_start(self):
-        self.root.ids.toolbar.custom_color = [1, 1, 1, 1]
+    # def on_start(self):
+    #   self.root.ids.toolbar.custom_color = [1, 1, 1, 1]
 
-    def crud(self):
+    def crud(self, btn_name):
         self.manager.current = 'crud'
+        print(btn_name)
 
 
 class LoginScreen(MDScreen):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.keyboard = None
-        self.focusable_widgets = None
-
-    def on_pre_enter(self):
-        self.focusable_widgets = [
-            self.ids.idlogin,
-            self.ids.idsenha,
-            self.ids.btn_esqueci,
-            self.ids.btn_entrar
-        ]
-        self.keyboard = Window
-        self.keyboard.bind(on_key_down=self.on_key_down)
-
-    def on_key_down(self, keyboard, keycode, text, modifiers, *args):
-        if keycode == 9:  # 9 é o código da tecla Tab
-            self.focus_next()
-
-    def focus_next(self):
-        current_index = -1
-        for i, widget in enumerate(self.focusable_widgets):
-            if widget.focus:
-                current_index = i
-                widget.focus = False
-                break
-
-        next_index = (current_index + 1) % len(self.focusable_widgets)
-        self.focusable_widgets[next_index].focus = True
-
     def get_data(self):
         login = self.ids.idlogin.text
         senha = self.ids.idsenha.text
@@ -227,6 +198,8 @@ class LoginScreen(MDScreen):
 
 
 class CrudScreen(MDScreen):
+    btn_name = ''
+
     def cadastrar(self):
         self.manager.current = "cad_aluno"
 
