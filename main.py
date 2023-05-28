@@ -252,7 +252,10 @@ class ConfirmationPopup(Popup):
 
 
 class MainScreen(MDScreen):
+    logado = StringProperty('')
+
     # Window.size = (700, 550)
+
     def crud(self, nome):
         self.manager.get_screen('crud').btn_name = nome
         self.manager.current = 'crud'
@@ -264,13 +267,17 @@ class LoginScreen(MDScreen):
         senha = self.ids.idsenha.text
         if validar_login(login, senha):
             toast("Login e senha válidos", duration=2)
+            self.manager.get_screen('principal').logado = login
+            self.manager.get_screen('crud').logado = login
             self.manager.current = 'principal'
+
         else:
             toast("Login ou senha inválidos", duration=5)
 
 
 class CrudScreen(MDScreen):
     btn_name = StringProperty('')
+    logado = StringProperty('')
 
     def cadastrar(self, btn_name=None):
         btn_name = btn_name or self.btn_name
@@ -278,15 +285,29 @@ class CrudScreen(MDScreen):
         if btn_name == 'aluno':
             self.manager.current = "cad_aluno"
         elif btn_name == 'turma':
-            self.manager.current = ''
+            self.manager.current = 'cad_turma'
         elif btn_name == 'curso':
-            self.manager.current = ''
+            self.manager.current = 'cad_curso'
         elif btn_name == 'prof':
             self.manager.current = 'cad_professor'
+
         elif btn_name == 'func':
-            self.manager.current = 'cad_funcionario'
+            if self.logado == 'monykpp':
+                self.manager.current = 'cad_funcionario'
+            else:
+                toast('Você não tem acesso ao cadastro de funcionarios')
+
         elif btn_name == 'pag':
-            self.manager.current = ''
+            self.manager.current = 'cad_pag'
+
+
+        elif btn_name == 'pag':
+            self.manager.current = 'cad_pag'
+
+
+        elif btn_name == 'pag':
+            self.manager.current = 'cad_pag'
+            
         else:
             print('deu erro')
 
@@ -545,6 +566,46 @@ class ConsultarFuncionario(MDScreen):
     pass
 
 
+class CadastrarSala(MDScreen):
+    pass
+
+
+class ConsultarSala(MDScreen):
+    pass
+
+
+class CadastrarTurma(MDScreen):
+    pass
+
+
+class ConsultarTurma(MDScreen):
+    pass
+
+
+class CadastrarAlunoTurma(MDScreen):
+    pass
+
+
+class ConsultarAlunoTurma(MDScreen):
+    pass
+
+
+class CadastrarPagamento(MDScreen):
+    pass
+
+
+class ConsultarPagamento(MDScreen):
+    pass
+
+
+class CadastrarCurso(MDScreen):
+    pass
+
+
+class ConsultarCurso(MDScreen):
+    pass
+
+
 # --------------------------- APP ---------------------------------
 
 class DibTopApp(MDApp):
@@ -565,12 +626,23 @@ class DibTopApp(MDApp):
         Builder.load_file("screens/cadastrar_funcionario.kv")
         Builder.load_file("screens/consultar_funcionario.kv")
         Builder.load_file("screens/popup.kv")
+        Builder.load_file("screens/cadastrar_sala.kv")
+        Builder.load_file("screens/cadastrar_curso.kv")
+        Builder.load_file("screens/cadastrar_alunoturma.kv")
+        Builder.load_file("screens/cadastrar_pagamento.kv")
+        Builder.load_file("screens/cadastrar_turma.kv")
+        Builder.load_file("screens/consultar_sala.kv")
+        Builder.load_file("screens/consultar_curso.kv")
+        Builder.load_file("screens/consultar_alunoturma.kv")
+        Builder.load_file("screens/consultar_turma.kv")
+        Builder.load_file("screens/consultar_pagamento.kv")
+
         Window.clearcolor = (1, 1, 1, 1)
         Window.maximize()
         self.theme_cls.primary_palette = "Green"
 
         sm = MainScreenManager(transition=NoTransition())
-        # sm.current = 'login'
+        sm.current = 'login'
 
         self.navigation = NavigationManager(sm)  # Passando a instância de MainScreenManager para NavigationManager
         return sm
