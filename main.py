@@ -422,75 +422,46 @@ class CrudScreen(MDScreen):
 
 
 class CadastrarAluno(MDScreen):
+    def principal(self):
+        principal(self)
 
     def salvar_dados(self):
 
         idaluno = self.ids.idaluno.text
+        nome = self.ids.idnome.text
+        cpf = self.ids.idcpf.text
+        dt_nasc = self.ids.iddtnasc.text
+        endereco = self.ids.idend.text
+        email = self.ids.idemail.text
+        telefone = self.ids.idtel.text
+        naturalidade = self.ids.idnat.text
+        nome_mae = self.ids.idnomemae.text
+        estado_civil = self.ids.idestcivil.text
+        escolaridade = self.ids.idesc.text
+
+        # Converte a string da data de nascimento para um objeto datetime
+        dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
+
+        conn = conectar()
+        cur = conn.cursor()
 
         if idaluno == '-':
-            try:
-                nome = self.ids.idnome.text
-                cpf = self.ids.idcpf.text
-                dt_nasc = self.ids.iddtnasc.text
-                endereco = self.ids.idend.text
-                email = self.ids.idemail.text
-                telefone = self.ids.idtel.text
-                naturalidade = self.ids.idnat.text
-                nome_mae = self.ids.idnomemae.text
-                estado_civil = self.ids.idestcivil.text
-                escolaridade = self.ids.idesc.text
-                
-                # Converte a string da data de nascimento para um objeto datetime
-                dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
-
-                conn = conectar()
-                cur = conn.cursor()
-
-                cur.execute("""INSERT into Aluno 
-                (nome,cpf,dt_nasc,endereco,email,telefone,naturalidade,nome_mae,estado_civil,escolaridade) 
-                Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
-                      nome_mae, estado_civil, escolaridade))
-
-                conn.commit()  # Confirma a transação
-                toast("Salvo com sucesso!", duration=2)
-
-                principal(self)
-
-            except Exception as e:
-                toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
+            cur.execute("""INSERT into Aluno 
+            (nome,cpf,dt_nasc,endereco,email,telefone,naturalidade,nome_mae,estado_civil,escolaridade) 
+            Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
+                  nome_mae, estado_civil, escolaridade))
         else:
-            try:
-                id_aluno = idaluno
-                nome = self.ids.idnome.text
-                cpf = self.ids.idcpf.text
-                dt_nasc = self.ids.iddtnasc.text
-                endereco = self.ids.idend.text
-                email = self.ids.idemail.text
-                telefone = self.ids.idtel.text
-                naturalidade = self.ids.idnat.text
-                nome_mae = self.ids.idnomemae.text
-                estado_civil = self.ids.idestcivil.text
-                escolaridade = self.ids.idesc.text
-                dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
+            cur.execute("""UPDATE Aluno 
+                        SET nome = %s,cpf = %s,dt_nasc = %s,endereco = %s,email = %s,telefone = %s,
+                        naturalidade = %s,nome_mae = %s,estado_civil = %s,escolaridade = %s
+                        WHERE id_aluno = %s""", (nome, cpf, dt_nasc, endereco, email, telefone,
+                                                 naturalidade, nome_mae, estado_civil, escolaridade, idaluno))
 
-                conn = conectar()
-                cur = conn.cursor()
+        conn.commit()  # Confirma a transação
+        toast("Salvo com sucesso!", duration=2)
 
-                cur.execute("""UPDATE Aluno 
-                            SET nome = %s,cpf = %s,dt_nasc = %s,endereco = %s,email = %s,telefone = %s,
-                            naturalidade = %s,nome_mae = %s,estado_civil = %s,escolaridade = %s
-                            WHERE id_aluno = %s""", (nome, cpf, dt_nasc, endereco, email, telefone,
-                                                     naturalidade, nome_mae, estado_civil, escolaridade, id_aluno))
-
-                conn.commit()  # Confirma a transação
-                toast("Salvo com sucesso!", duration=2)
-
-                principal(self)
-
-            except Exception as e:
-                toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
-                return False
+        principal(self)
 
 
 class ConsultarAluno(MDScreen):
@@ -500,26 +471,19 @@ class ConsultarAluno(MDScreen):
             conn = conectar()
             cur = conn.cursor()
 
-            cur.execute('''SELECT aluno.id_aluno, aluno.nome, aluno.cpf 
-                           FROM aluno
-                           WHERE aluno.nome LIKE %s
-                           ORDER BY 2''', ('%' + texto + '%',))
+            cur.execute('''SELECT aluno.id_aluno, aluno.nome, aluno.cpf FROM aluno 
+            WHERE aluno.nome LIKE %s ORDER BY 2''', ('%' + texto + '%',))
 
-            # Limpar a lista de alunos
             self.ids.aluno_list.clear_widgets()
 
             btnbuscar = self.ids.btnbuscar
             consulta = cur.fetchall()
 
-            # Iterar sobre os resultados da consulta
             for row in consulta:
                 id_aluno, nome, cpf = row
-                # Criar um novo item de aluno
                 aluno_item = AlunoListItem(id_aluno=str(id_aluno), nome=nome, cpf=cpf, btnbuscar=btnbuscar)
-                # Adicionar o item à lista
                 self.ids.aluno_list.add_widget(aluno_item)
 
-            # Fechar a conexão com o banco de dados
             conn.close()
 
         except Exception as e:
@@ -532,59 +496,36 @@ class ConsultarAluno(MDScreen):
 
 class CadastrarProfessor(MDScreen):
     def principal(self):
-        self.manager.current = 'principal'
+        principal(self)
 
     def salvar_dados(self):
 
         idprof = self.ids.idprof.text
+        nome = self.ids.nome.text
+        cpf = self.ids.cpf.text
+        area = self.ids.ae.text
+        endereco = self.ids.end.text
+        email = self.ids.email.text
+        telefone = self.ids.tel.text
+
+        conn = conectar()
+        cur = conn.cursor()
 
         if idprof == '-':
-            try:
-                nome = self.ids.nome.text
-                cpf = self.ids.cpf.text
-                area = self.ids.ae.text
-                endereco = self.ids.end.text
-                email = self.ids.email.text
-                telefone = self.ids.tel.text
+            cur.execute("""INSERT into Professor
+            (nome, cpf, area_ensino, endereco, email, telefone)
+            Values (%s, %s, %s, %s, %s, %s)
+            """, (nome, cpf, area, endereco, email, telefone))
 
-                conn = conectar()
-                cur = conn.cursor()
-
-                cur.execute("""INSERT into Professor
-                (nome, cpf, area_ensino, endereco, email, telefone)
-                Values (%s, %s, %s, %s, %s, %s)
-                """, (nome, cpf, area, endereco, email, telefone))
-
-                conn.commit()  # Confirma a transação
-                toast("Salvo com sucesso!", duration=2)
-                self.principal()
-
-            except Exception as e:
-                toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
         else:
-            try:
-                id_professor = idprof
-                nome = self.ids.nome.text
-                cpf = self.ids.cpf.text
-                area = self.ids.ae.text
-                endereco = self.ids.end.text
-                email = self.ids.email.text
-                telefone = self.ids.tel.text
+            cur.execute("""UPDATE Professor
+                        SET nome = %s,cpf = %s,area_ensino = %s,endereco = %s,email = %s,telefone = %s
+                        WHERE id_professor = %s""", (nome, cpf, area, endereco, email, telefone, idprof))
 
-                conn = conectar()
-                cur = conn.cursor()
+        conn.commit()  # Confirma a transação
+        toast("Salvo com sucesso!", duration=2)
 
-                cur.execute("""UPDATE Professor
-                            SET nome = %s,cpf = %s,area_ensino = %s,endereco = %s,email = %s,telefone = %s
-                            WHERE id_professor = %s""", (nome, cpf, area, endereco, email, telefone, id_professor))
-
-                conn.commit()  # Confirma a transação
-                toast("Salvo com sucesso!", duration=2)
-                self.principal()
-
-            except Exception as e:
-                toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
-                return False
+        principal(self)
 
 
 class ConsultarProfessor(MDScreen):
@@ -593,26 +534,19 @@ class ConsultarProfessor(MDScreen):
             conn = conectar()
             cur = conn.cursor()
 
-            cur.execute('''SELECT professor.id_professor, professor.nome, professor.cpf 
-                           FROM professor
-                           WHERE professor.nome LIKE %s
-                           ORDER BY 2''', ('%' + texto + '%',))
+            cur.execute('''SELECT professor.id_professor, professor.nome, professor.cpf FROM professor 
+            WHERE professor.nome LIKE %s ORDER BY 2''', ('%' + texto + '%',))
 
-            # Limpar a lista de alunos
             self.ids.prof_list.clear_widgets()
 
             btnbuscar = self.ids.btnbuscar
             consulta = cur.fetchall()
 
-            # Iterar sobre os resultados da consulta
             for row in consulta:
                 id_professor, nome, cpf = row
-                # Criar um novo item de aluno
                 prof_item = ProfListItem(id_professor=str(id_professor), nome=nome, cpf=cpf, btnbuscar=btnbuscar)
-                # Adicionar o item à lista
                 self.ids.prof_list.add_widget(prof_item)
 
-            # Fechar a conexão com o banco de dados
             conn.close()
 
         except Exception as e:
