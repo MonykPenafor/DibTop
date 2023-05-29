@@ -25,6 +25,13 @@
                 text: "Cancelar"
                 pos_hint: {'center_x': 0.5, 'center_y': 0.8}
                 on_release: app.navigation.return_to_principal()
+
+            MDFillRoundFlatButton:
+                id: btnnovo
+                text: "Novo"
+                pos_hint: {'center_x': 0.5, 'center_y': 0.8}
+                on_release: root.novo()
+
         BoxLayout:
             ScrollView:
                 MDList:

@@ -6,6 +6,8 @@ from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, NoTransition
+from kivy.uix.textinput import TextInput
+from kivymd.uix.label import MDLabel
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
 from kivymd.app import MDApp
@@ -13,6 +15,7 @@ import psycopg2
 from kivymd.toast import toast
 from datetime import datetime
 from kivymd.uix.list import TwoLineAvatarIconListItem
+from kivymd.uix.textfield import MDTextField
 
 
 # ----------------------  FUNÇÕES -------------------------------
@@ -46,9 +49,16 @@ def conf_data(data):
     ano = data[0:4]
     mes = data[5:7]
     dia = data[8:11]
-
     data = dia + '/' + mes + '/' + ano
     return data
+
+
+def limpar_campos(self):
+    for widget in self.ids.values():
+        if isinstance(widget, MDLabel):
+            widget.text = '-'
+        if isinstance(widget, MDTextField):
+            widget.text = ""
 
 
 # ---------------------   CLASES   ----------------------------
@@ -216,6 +226,75 @@ class ProfListItem(TwoLineAvatarIconListItem, EventDispatcher):
         popup.open()
 
 
+class FuncListItem(TwoLineAvatarIconListItem, EventDispatcher):
+    nome = StringProperty('')
+
+    def __init__(self, id_funcionario='', nome='', btnbuscar=None, **kwargs):
+        super(FuncListItem, self).__init__(**kwargs)
+        self.btnbuscar = btnbuscar
+        self.id_funcionario = id_funcionario
+        self.nome = nome
+
+    def deletar(self):
+        def confirmar_exclusao():
+            try:
+                conn = conectar()
+                cur = conn.cursor()
+
+                id_funcionario = int(self.id_funcionario)
+
+                cur.execute('''DELETE FROM funcionario WHERE id_funcionario = %s;''', (id_funcionario,))
+                conn.commit()
+                conn.close()
+
+                toast("Registro deletado", duration=5)
+
+                btn = self.btnbuscar
+                btn.trigger_action()
+
+            except Exception as e:
+                toast(f"Error: {e}", duration=5)
+                print(e)
+
+        popup = ConfirmationPopup(callback=confirmar_exclusao)
+        popup.open()
+
+
+class SalaListItem(TwoLineAvatarIconListItem, EventDispatcher):
+    descricao = StringProperty('')
+
+    def __init__(self, id_sala='', descricao='', capacidade='', btnbuscar=None, **kwargs):
+        super(SalaListItem, self).__init__(**kwargs)
+        self.btnbuscar = btnbuscar
+        self.id_sala = id_sala
+        self.descricao = descricao
+        self.capacidade = capacidade
+
+    def deletar(self):
+        def confirmar_exclusao():
+            try:
+                conn = conectar()
+                cur = conn.cursor()
+
+                id_sala = int(self.id_sala)
+
+                cur.execute('''DELETE FROM sala WHERE id_sala = %s;''', (id_sala,))
+                conn.commit()
+                conn.close()
+
+                toast("Registro deletado", duration=5)
+
+                btn = self.btnbuscar
+                btn.trigger_action()
+
+            except Exception as e:
+                toast(f"Error: {e}", duration=5)
+                print(e)
+
+        popup = ConfirmationPopup(callback=confirmar_exclusao)
+        popup.open()
+
+
 class HoverButton(Button):
     def __init__(self, **kwargs):
         super(HoverButton, self).__init__(**kwargs)
@@ -254,8 +333,6 @@ class ConfirmationPopup(Popup):
 class MainScreen(MDScreen):
     logado = StringProperty('')
 
-    # Window.size = (700, 550)
-
     def crud(self, nome):
         self.manager.get_screen('crud').btn_name = nome
         self.manager.current = 'crud'
@@ -273,6 +350,9 @@ class LoginScreen(MDScreen):
 
         else:
             toast("Login ou senha inválidos", duration=5)
+
+    def mensagem(self):
+        toast('Informe o administrador e crie um novo login', duration=7)
 
 
 class CrudScreen(MDScreen):
@@ -299,15 +379,11 @@ class CrudScreen(MDScreen):
 
         elif btn_name == 'pag':
             self.manager.current = 'cad_pag'
+        elif btn_name == 'at':
+            self.manager.current = 'cad_alunoturma'
+        elif btn_name == 'sala':
+            self.manager.current = 'cad_sala'
 
-
-        elif btn_name == 'pag':
-            self.manager.current = 'cad_pag'
-
-
-        elif btn_name == 'pag':
-            self.manager.current = 'cad_pag'
-            
         else:
             print('deu erro')
 
@@ -317,15 +393,25 @@ class CrudScreen(MDScreen):
         if btn_name == 'aluno':
             self.manager.current = "con_aluno"
         elif btn_name == 'turma':
-            self.manager.current = ''
+            self.manager.current = 'con_turma'
         elif btn_name == 'curso':
-            self.manager.current = ''
+            self.manager.current = 'con_curso'
         elif btn_name == 'prof':
             self.manager.current = 'con_professor'
+
         elif btn_name == 'func':
-            self.manager.current = 'con_funcionario'
+            if self.logado == 'monykpp':
+                self.manager.current = 'con_funcionario'
+            else:
+                toast('Você não tem acesso ao cadastro de funcionarios')
+
         elif btn_name == 'pag':
-            self.manager.current = ''
+            self.manager.current = 'con_pag'
+        elif btn_name == 'at':
+            self.manager.current = 'con_alunoturma'
+        elif btn_name == 'sala':
+            self.manager.current = 'con_sala'
+
         else:
             print('deu erro')
 
@@ -333,6 +419,7 @@ class CrudScreen(MDScreen):
 class CadastrarAluno(MDScreen):
 
     def principal(self):
+        limpar_campos(self)
         self.manager.current = 'principal'
 
     def salvar_dados(self):
@@ -366,6 +453,8 @@ class CadastrarAluno(MDScreen):
 
                 conn.commit()  # Confirma a transação
                 toast("Salvo com sucesso!", duration=2)
+
+
                 self.principal()
 
             except Exception as e:
@@ -396,6 +485,8 @@ class CadastrarAluno(MDScreen):
 
                 conn.commit()  # Confirma a transação
                 toast("Salvo com sucesso!", duration=2)
+
+
                 self.principal()
 
             except Exception as e:
@@ -404,6 +495,8 @@ class CadastrarAluno(MDScreen):
 
 
 class ConsultarAluno(MDScreen):
+
+
 
     def pesquisar(self, texto):
         try:
@@ -435,6 +528,9 @@ class ConsultarAluno(MDScreen):
         except Exception as e:
             toast(f"Error: {e}", duration=5)
             print(e)
+
+    def novo(self):
+        self.manager.current = 'cad_aluno'
 
 
 class CadastrarProfessor(MDScreen):
@@ -563,15 +659,130 @@ class CadastrarFuncionario(MDScreen):
 
 
 class ConsultarFuncionario(MDScreen):
-    pass
+
+    def pesquisar(self, texto):
+        try:
+            conn = conectar()
+            cur = conn.cursor()
+
+            cur.execute('''SELECT funcionario.id_funcionario, fucnionario.nome
+                           FROM funcionario
+                           WHERE fucnionario.nome LIKE %s
+                           ORDER BY 2''', ('%' + texto + '%',))
+
+            # Limpar a lista de alunos
+            self.ids.func_list.clear_widgets()
+
+            btnbuscar = self.ids.btnbuscar
+            consulta = cur.fetchall()
+
+            # Iterar sobre os resultados da consulta
+            for row in consulta:
+                id_funcionario, nome = row
+                # Criar um novo item de aluno
+                func_item = FuncListItem(id_funcionario=str(id_funcionario), nome=nome, btnbuscar=btnbuscar)
+                # Adicionar o item à lista
+                self.ids.func_list.add_widget(func_item)
+
+            # Fechar a conexão com o banco de dados
+            conn.close()
+
+        except Exception as e:
+            toast(f"Error: {e}", duration=5)
+            print(e)
+
+    def novo(self):
+        self.manager.current = 'cad_aluno'
 
 
 class CadastrarSala(MDScreen):
-    pass
+
+    def principal(self):
+        self.manager.current = 'principal'
+
+    def salvar_dados(self):
+
+        idsala = self.ids.sala.text
+
+        if idsala == '-':
+            try:
+                numero = self.ids.numero.text
+                descricao = self.ids.descricao.text
+                capacidade = self.ids.capac.text
+
+                conn = conectar()
+                cur = conn.cursor()
+
+                cur.execute("""INSERT into Sala
+                (descricao, numero, capacidade) 
+                Values (%s, %s, %s)
+                """, (descricao, numero, capacidade))
+
+                conn.commit()  # Confirma a transação
+                toast("Salvo com sucesso!", duration=2)
+                self.principal()
+
+            except Exception as e:
+                toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
+        else:
+            try:
+                id_sala = idsala
+                numero = self.ids.numero.text
+                descricao = self.ids.descricao.text
+                capacidade = self.ids.capac.text
+
+                conn = conectar()
+                cur = conn.cursor()
+
+                cur.execute("""UPDATE Sala
+                            SET descricao = %s,numero = %s,capacidade = %s
+                            WHERE id_sala = %s""", (descricao, numero, capacidade, id_sala))
+
+                conn.commit()  # Confirma a transação
+                toast("Salvo com sucesso!", duration=2)
+                self.principal()
+
+            except Exception as e:
+                toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
+                return False
 
 
 class ConsultarSala(MDScreen):
-    pass
+
+    def pesquisar(self, texto):
+        try:
+            conn = conectar()
+            cur = conn.cursor()
+
+            cur.execute('''SELECT sala.id_sala,sala.descricao, sala.capacidade
+                           FROM sala
+                           WHERE sala.descriçao LIKE %s
+                           ORDER BY 2''', ('%' + texto + '%',))
+
+            # Limpar a lista de alunos
+            self.ids.sala_list.clear_widgets()
+
+            btnbuscar = self.ids.btnbuscar
+            consulta = cur.fetchall()
+
+            # Iterar sobre os resultados da consulta
+            for row in consulta:
+                id_sala, descricao, capacidade = row
+                # Criar um novo item de aluno
+                sala_item = SalaListItem(id_sala=str(id_sala), descricao=descricao, capacidade=capacidade,
+                                         btnbuscar=btnbuscar)
+                # Adicionar o item à lista
+                self.ids.sala_list.add_widget(sala_item)
+
+            # Fechar a conexão com o banco de dados
+            conn.close()
+
+        except Exception as e:
+            toast(f"Error: {e}", duration=5)
+            print(e)
+
+    def novo(self):
+        self.manager.current = 'cad_aluno'
 
 
 class CadastrarTurma(MDScreen):
@@ -638,11 +849,11 @@ class DibTopApp(MDApp):
         Builder.load_file("screens/consultar_pagamento.kv")
 
         Window.clearcolor = (1, 1, 1, 1)
-        Window.maximize()
+        # Window.maximize()
         self.theme_cls.primary_palette = "Green"
 
         sm = MainScreenManager(transition=NoTransition())
-        sm.current = 'login'
+        # sm.current = 'login'
 
         self.navigation = NavigationManager(sm)  # Passando a instância de MainScreenManager para NavigationManager
         return sm

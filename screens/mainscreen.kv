@@ -14,7 +14,7 @@
 
         MDBoxLayout:
             md_bg_color: 'white'
-            size_hint_y: 0.09
+            size_hint_y: 0.06
 
             MDBoxLayout:
                 orientation: 'horizontal'
@@ -25,7 +25,7 @@
                     id: funcbtn
                     text: "Funcionário"
                     md_bg_color: "gray"
-                    font_size: 20
+                    font_size: 15
                     elevation: 0
                     on_release: root.crud('func')
                 HoverButton:
@@ -41,8 +41,17 @@
                     elevation: 0
                     on_release: root.crud('prof')
                 HoverButton:
-                    font_size: 20
+                    id: salabtn
+                    text: "Sala"
+                    font_size: 15
                     elevation: 0
+                    on_release: root.crud('sala')
+                HoverButton:
+                    id: atbtn
+                    text: "aluno turma"
+                    font_size: 15
+                    elevation: 0
+                    on_release: root.crud('at')
 
         MDBoxLayout:
             orientation: 'vertical'

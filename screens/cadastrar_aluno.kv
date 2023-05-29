@@ -6,6 +6,7 @@
             size_hint_x: 0.2
 
         CustomBoxLayout:
+
             orientation: 'vertical'
             padding: '40dp'
             spacing: 2
@@ -17,6 +18,7 @@
                 font_size:  35
 
             BoxLayout:
+                id: caixa
                 orientation: 'horizontal'
                 spacing: 5
 
@@ -161,7 +163,7 @@
                         pos_hint: {'center_x':0.5}
                         size_hint_x: 0.75
                         font_size: 20
-                        on_release: app.navigation.return_to_principal()
+                        on_release: root.principal()
 
         BoxLayout:
             size_hint_x: 0.2
