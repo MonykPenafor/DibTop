@@ -632,53 +632,33 @@ class ConsultarFuncionario(MDScreen):
 class CadastrarSala(MDScreen):
 
     def principal(self):
-        self.manager.current = 'principal'
+        principal(self)
 
     def salvar_dados(self):
+        try:
+            idsala = self.ids.sala.text
+            numero = self.ids.numero.text
+            descricao = self.ids.descricao.text
+            capacidade = self.ids.capac.text
 
-        idsala = self.ids.sala.text
+            conn = conectar()
+            cur = conn.cursor()
 
-        if idsala == '-':
-            try:
-                numero = self.ids.numero.text
-                descricao = self.ids.descricao.text
-                capacidade = self.ids.capac.text
-
-                conn = conectar()
-                cur = conn.cursor()
-
-                cur.execute("""INSERT into Sala
-                (descricao, numero, capacidade) 
-                Values (%s, %s, %s)
+            if idsala == '-':
+                cur.execute("""INSERT into Sala (descricao, numero, capacidade) Values (%s, %s, %s)
                 """, (descricao, numero, capacidade))
-
-                conn.commit()  # Confirma a transação
-                toast("Salvo com sucesso!", duration=2)
-                self.principal()
-
-            except Exception as e:
-                toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
-        else:
-            try:
-                id_sala = idsala
-                numero = self.ids.numero.text
-                descricao = self.ids.descricao.text
-                capacidade = self.ids.capac.text
-
-                conn = conectar()
-                cur = conn.cursor()
-
+            else:
                 cur.execute("""UPDATE Sala
                             SET descricao = %s,numero = %s,capacidade = %s
-                            WHERE id_sala = %s""", (descricao, numero, capacidade, id_sala))
+                            WHERE id_sala = %s""", (descricao, numero, capacidade, idsala))
 
-                conn.commit()  # Confirma a transação
-                toast("Salvo com sucesso!", duration=2)
-                self.principal()
+            conn.commit()  # Confirma a transação
 
-            except Exception as e:
-                toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
-                return False
+            toast("Salvo com sucesso!", duration=2)
+            self.principal()
+
+        except Exception as e:
+            toast(f"Erro ao salvar dados: {e}", duration=2)
 
 
 class ConsultarSala(MDScreen):
@@ -688,35 +668,27 @@ class ConsultarSala(MDScreen):
             conn = conectar()
             cur = conn.cursor()
 
-            cur.execute('''SELECT sala.id_sala,sala.descricao, sala.capacidade
-                           FROM sala
-                           WHERE sala.descriçao LIKE %s
-                           ORDER BY 2''', ('%' + texto + '%',))
+            cur.execute('''SELECT sala.id_sala,sala.descricao, sala.capacidade FROM sala
+                           WHERE sala.descriçao LIKE %s ORDER BY 2''', ('%' + texto + '%',))
 
-            # Limpar a lista de alunos
             self.ids.sala_list.clear_widgets()
 
             btnbuscar = self.ids.btnbuscar
             consulta = cur.fetchall()
 
-            # Iterar sobre os resultados da consulta
             for row in consulta:
-                id_sala, descricao, capacidade = row
-                # Criar um novo item de aluno
-                sala_item = SalaListItem(id_sala=str(id_sala), descricao=descricao, capacidade=capacidade,
-                                         btnbuscar=btnbuscar)
-                # Adicionar o item à lista
+                id_sala, desc, cap = row
+                sala_item = SalaListItem(id_sala=str(id_sala), descricao=desc, capacidade=cap, btnbuscar=btnbuscar)
                 self.ids.sala_list.add_widget(sala_item)
 
-            # Fechar a conexão com o banco de dados
             conn.close()
 
         except Exception as e:
-            toast(f"Error: {e}", duration=5)
+            toast(f"Erro: {e}", duration=5)
             print(e)
 
     def novo(self):
-        self.manager.current = 'cad_aluno'
+        self.manager.current = 'cad_sala'
 
 
 class CadastrarTurma(MDScreen):
