@@ -61,6 +61,11 @@ def limpar_campos(self):
             widget.text = ""
 
 
+def principal(self):
+    limpar_campos(self)
+    self.manager.current = 'principal'
+
+
 # ---------------------   CLASES   ----------------------------
 
 class NavigationManager:
@@ -91,7 +96,8 @@ class NavigationManager:
 
                 consulta = cur.fetchone()
 
-                nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil, escolaridade = consulta
+                nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil, \
+                    escolaridade = consulta
 
                 tela_atual.ids.idaluno.text = id_aluno
                 tela_atual.ids.idnome.text = nome
@@ -106,7 +112,7 @@ class NavigationManager:
                 tela_atual.ids.idestcivil.text = estado_civil
                 tela_atual.ids.idesc.text = escolaridade
 
-                conn.commit()  # Confirma a transação
+                conn.commit()
                 conn.close()
 
             except Exception as e:
@@ -142,7 +148,7 @@ class NavigationManager:
                 tela_atual.ids.email.text = email
                 tela_atual.ids.tel.text = telefone
 
-                conn.commit()  # Confirma a transação
+                conn.commit()
                 conn.close()
 
             except Exception as e:
@@ -174,10 +180,11 @@ class AlunoListItem(TwoLineAvatarIconListItem, EventDispatcher):
                 id_aluno = int(self.id_aluno)
 
                 cur.execute('''DELETE FROM aluno WHERE id_aluno = %s;''', (id_aluno,))
+
                 conn.commit()
                 conn.close()
 
-                toast("Registro deletado", duration=5)
+                toast("Registro excluído com sucesso!", duration=5)
 
                 btn = self.btnbuscar
                 btn.trigger_action()
@@ -213,7 +220,7 @@ class ProfListItem(TwoLineAvatarIconListItem, EventDispatcher):
                 conn.commit()
                 conn.close()
 
-                toast("Registro deletado", duration=5)
+                toast("Registro excluído com sucesso!", duration=5)
 
                 btn = self.btnbuscar
                 btn.trigger_action()
@@ -247,7 +254,7 @@ class FuncListItem(TwoLineAvatarIconListItem, EventDispatcher):
                 conn.commit()
                 conn.close()
 
-                toast("Registro deletado", duration=5)
+                toast("Registro excluído com sucesso!", duration=5)
 
                 btn = self.btnbuscar
                 btn.trigger_action()
@@ -268,7 +275,7 @@ class SalaListItem(TwoLineAvatarIconListItem, EventDispatcher):
         self.btnbuscar = btnbuscar
         self.id_sala = id_sala
         self.descricao = descricao
-        self.capacidade = capacidade
+        self.capacidade = 'capacidade:' + capacidade
 
     def deletar(self):
         def confirmar_exclusao():
@@ -282,7 +289,7 @@ class SalaListItem(TwoLineAvatarIconListItem, EventDispatcher):
                 conn.commit()
                 conn.close()
 
-                toast("Registro deletado", duration=5)
+                toast("Registro excluído com sucesso!", duration=5)
 
                 btn = self.btnbuscar
                 btn.trigger_action()
@@ -383,7 +390,6 @@ class CrudScreen(MDScreen):
             self.manager.current = 'cad_alunoturma'
         elif btn_name == 'sala':
             self.manager.current = 'cad_sala'
-
         else:
             print('deu erro')
 
@@ -411,16 +417,11 @@ class CrudScreen(MDScreen):
             self.manager.current = 'con_alunoturma'
         elif btn_name == 'sala':
             self.manager.current = 'con_sala'
-
         else:
             print('deu erro')
 
 
 class CadastrarAluno(MDScreen):
-
-    def principal(self):
-        limpar_campos(self)
-        self.manager.current = 'principal'
 
     def salvar_dados(self):
 
@@ -438,7 +439,7 @@ class CadastrarAluno(MDScreen):
                 nome_mae = self.ids.idnomemae.text
                 estado_civil = self.ids.idestcivil.text
                 escolaridade = self.ids.idesc.text
-
+                
                 # Converte a string da data de nascimento para um objeto datetime
                 dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
 
@@ -454,8 +455,7 @@ class CadastrarAluno(MDScreen):
                 conn.commit()  # Confirma a transação
                 toast("Salvo com sucesso!", duration=2)
 
-
-                self.principal()
+                principal(self)
 
             except Exception as e:
                 toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
@@ -486,8 +486,7 @@ class CadastrarAluno(MDScreen):
                 conn.commit()  # Confirma a transação
                 toast("Salvo com sucesso!", duration=2)
 
-
-                self.principal()
+                principal(self)
 
             except Exception as e:
                 toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
@@ -495,8 +494,6 @@ class CadastrarAluno(MDScreen):
 
 
 class ConsultarAluno(MDScreen):
-
-
 
     def pesquisar(self, texto):
         try:
