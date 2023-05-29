@@ -236,11 +236,12 @@ class ProfListItem(TwoLineAvatarIconListItem, EventDispatcher):
 class FuncListItem(TwoLineAvatarIconListItem, EventDispatcher):
     nome = StringProperty('')
 
-    def __init__(self, id_funcionario='', nome='', btnbuscar=None, **kwargs):
+    def __init__(self, id_func='', nome='', login='', btnbuscar=None, **kwargs):
         super(FuncListItem, self).__init__(**kwargs)
         self.btnbuscar = btnbuscar
-        self.id_funcionario = id_funcionario
+        self.id_func = id_func
         self.nome = nome
+        self.login = login
 
     def deletar(self):
         def confirmar_exclusao():
@@ -248,9 +249,9 @@ class FuncListItem(TwoLineAvatarIconListItem, EventDispatcher):
                 conn = conectar()
                 cur = conn.cursor()
 
-                id_funcionario = int(self.id_funcionario)
+                id_func = int(self.id_func)
 
-                cur.execute('''DELETE FROM funcionario WHERE id_funcionario = %s;''', (id_funcionario,))
+                cur.execute('''DELETE FROM funcionario WHERE id_funcionario = %s;''', (id_func,))
                 conn.commit()
                 conn.close()
 
@@ -427,41 +428,47 @@ class CadastrarAluno(MDScreen):
 
     def salvar_dados(self):
 
-        idaluno = self.ids.idaluno.text
-        nome = self.ids.idnome.text
-        cpf = self.ids.idcpf.text
-        dt_nasc = self.ids.iddtnasc.text
-        endereco = self.ids.idend.text
-        email = self.ids.idemail.text
-        telefone = self.ids.idtel.text
-        naturalidade = self.ids.idnat.text
-        nome_mae = self.ids.idnomemae.text
-        estado_civil = self.ids.idestcivil.text
-        escolaridade = self.ids.idesc.text
+        try:
 
-        # Converte a string da data de nascimento para um objeto datetime
-        dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
+            idaluno = self.ids.idaluno.text
+            nome = self.ids.idnome.text
+            cpf = self.ids.idcpf.text
+            dt_nasc = self.ids.iddtnasc.text
+            endereco = self.ids.idend.text
+            email = self.ids.idemail.text
+            telefone = self.ids.idtel.text
+            naturalidade = self.ids.idnat.text
+            nome_mae = self.ids.idnomemae.text
+            estado_civil = self.ids.idestcivil.text
+            escolaridade = self.ids.idesc.text
 
-        conn = conectar()
-        cur = conn.cursor()
+            # Converte a string da data de nascimento para um objeto datetime
+            dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
 
-        if idaluno == '-':
-            cur.execute("""INSERT into Aluno 
-            (nome,cpf,dt_nasc,endereco,email,telefone,naturalidade,nome_mae,estado_civil,escolaridade) 
-            Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
-                  nome_mae, estado_civil, escolaridade))
-        else:
-            cur.execute("""UPDATE Aluno 
-                        SET nome = %s,cpf = %s,dt_nasc = %s,endereco = %s,email = %s,telefone = %s,
-                        naturalidade = %s,nome_mae = %s,estado_civil = %s,escolaridade = %s
-                        WHERE id_aluno = %s""", (nome, cpf, dt_nasc, endereco, email, telefone,
-                                                 naturalidade, nome_mae, estado_civil, escolaridade, idaluno))
+            conn = conectar()
+            cur = conn.cursor()
 
-        conn.commit()  # Confirma a transação
-        toast("Salvo com sucesso!", duration=2)
+            if idaluno == '-':
+                cur.execute("""INSERT into Aluno 
+                (nome,cpf,dt_nasc,endereco,email,telefone,naturalidade,nome_mae,estado_civil,escolaridade) 
+                Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
+                      nome_mae, estado_civil, escolaridade))
+            else:
+                cur.execute("""UPDATE Aluno 
+                            SET nome = %s,cpf = %s,dt_nasc = %s,endereco = %s,email = %s,telefone = %s,
+                            naturalidade = %s,nome_mae = %s,estado_civil = %s,escolaridade = %s
+                            WHERE id_aluno = %s""", (nome, cpf, dt_nasc, endereco, email, telefone,
+                                                     naturalidade, nome_mae, estado_civil, escolaridade, idaluno))
 
-        principal(self)
+            conn.commit()  # Confirma a transação
+            toast("Salvo com sucesso!", duration=2)
+
+            principal(self)
+
+        except Exception as e:
+            toast(f"Erro ao salvar dados: {e}", duration=5)
+            print(e)
 
 
 class ConsultarAluno(MDScreen):
@@ -487,7 +494,7 @@ class ConsultarAluno(MDScreen):
             conn.close()
 
         except Exception as e:
-            toast(f"Error: {e}", duration=5)
+            toast(f"Erro: {e}", duration=5)
             print(e)
 
     def novo(self):
@@ -499,33 +506,38 @@ class CadastrarProfessor(MDScreen):
         principal(self)
 
     def salvar_dados(self):
+        try:
 
-        idprof = self.ids.idprof.text
-        nome = self.ids.nome.text
-        cpf = self.ids.cpf.text
-        area = self.ids.ae.text
-        endereco = self.ids.end.text
-        email = self.ids.email.text
-        telefone = self.ids.tel.text
+            idprof = self.ids.idprof.text
+            nome = self.ids.nome.text
+            cpf = self.ids.cpf.text
+            area = self.ids.ae.text
+            endereco = self.ids.end.text
+            email = self.ids.email.text
+            telefone = self.ids.tel.text
 
-        conn = conectar()
-        cur = conn.cursor()
+            conn = conectar()
+            cur = conn.cursor()
 
-        if idprof == '-':
-            cur.execute("""INSERT into Professor
-            (nome, cpf, area_ensino, endereco, email, telefone)
-            Values (%s, %s, %s, %s, %s, %s)
-            """, (nome, cpf, area, endereco, email, telefone))
+            if idprof == '-':
+                cur.execute("""INSERT into Professor
+                (nome, cpf, area_ensino, endereco, email, telefone)
+                Values (%s, %s, %s, %s, %s, %s)
+                """, (nome, cpf, area, endereco, email, telefone))
 
-        else:
-            cur.execute("""UPDATE Professor
-                        SET nome = %s,cpf = %s,area_ensino = %s,endereco = %s,email = %s,telefone = %s
-                        WHERE id_professor = %s""", (nome, cpf, area, endereco, email, telefone, idprof))
+            else:
+                cur.execute("""UPDATE Professor
+                            SET nome = %s,cpf = %s,area_ensino = %s,endereco = %s,email = %s,telefone = %s
+                            WHERE id_professor = %s""", (nome, cpf, area, endereco, email, telefone, idprof))
 
-        conn.commit()  # Confirma a transação
-        toast("Salvo com sucesso!", duration=2)
+            conn.commit()  # Confirma a transação
+            toast("Salvo com sucesso!", duration=2)
 
-        principal(self)
+            principal(self)
+
+        except Exception as e:
+            toast(f"Erro ao salvar dados: {e}", duration=5)
+            print(e)
 
 
 class ConsultarProfessor(MDScreen):
@@ -550,17 +562,15 @@ class ConsultarProfessor(MDScreen):
             conn.close()
 
         except Exception as e:
-            toast(f"Error: {e}", duration=5)
+            toast(f"Erro: {e}", duration=5)
             print(e)
 
 
 class CadastrarFuncionario(MDScreen):
     def principal(self):
-        self.manager.current = 'principal'
+        principal(self)
 
     def salvar_dados(self):
-
-        # idfunc = self.ids.idfunc.text
 
         try:
             nome = self.ids.nome.text
@@ -573,12 +583,11 @@ class CadastrarFuncionario(MDScreen):
                 conn = conectar()
                 cur = conn.cursor()
 
-                cur.execute("""INSERT into Funcionario
-                (nome, login, senha)
-                Values (%s, %s, %s)
+                cur.execute("""INSERT into Funcionario (nome, login, senha)Values (%s, %s, %s)
                 """, (nome, login, senha))
 
-                conn.commit()  # Confirma a transação
+                conn.commit()
+
                 toast("Salvo com sucesso!", duration=2)
                 self.principal()
 
@@ -586,7 +595,8 @@ class CadastrarFuncionario(MDScreen):
                 toast('senhas não coincidem', duration=4)
 
         except Exception as e:
-            toast(f"Error ao inserir dados do Aluno: {e}", duration=2)
+            toast(f"Erro ao salvar dados: {e}", duration=5)
+            print(e)
 
 
 class ConsultarFuncionario(MDScreen):
@@ -596,30 +606,23 @@ class ConsultarFuncionario(MDScreen):
             conn = conectar()
             cur = conn.cursor()
 
-            cur.execute('''SELECT funcionario.id_funcionario, fucnionario.nome
-                           FROM funcionario
-                           WHERE fucnionario.nome LIKE %s
-                           ORDER BY 2''', ('%' + texto + '%',))
+            cur.execute('''SELECT funcionario.id_funcionario, funcionario.nome,funcionario.login FROM funcionario
+                           WHERE fucnionario.nome LIKE %s ORDER BY 2''', ('%' + texto + '%',))
 
-            # Limpar a lista de alunos
             self.ids.func_list.clear_widgets()
 
             btnbuscar = self.ids.btnbuscar
             consulta = cur.fetchall()
 
-            # Iterar sobre os resultados da consulta
             for row in consulta:
-                id_funcionario, nome = row
-                # Criar um novo item de aluno
-                func_item = FuncListItem(id_funcionario=str(id_funcionario), nome=nome, btnbuscar=btnbuscar)
-                # Adicionar o item à lista
+                id_func, nome, login = row
+                func_item = FuncListItem(id_func=str(id_func), nome=nome, login=login, btnbuscar=btnbuscar)
                 self.ids.func_list.add_widget(func_item)
 
-            # Fechar a conexão com o banco de dados
             conn.close()
 
         except Exception as e:
-            toast(f"Error: {e}", duration=5)
+            toast(f"Erro: {e}", duration=5)
             print(e)
 
     def novo(self):
