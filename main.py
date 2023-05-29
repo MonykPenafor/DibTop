@@ -732,27 +732,7 @@ class DibTopApp(MDApp):
         self.navigation = None
 
     def build(self):
-        Builder.load_file("screens/screenmanager.kv")
-        Builder.load_file("screens/loginscreen.kv")
-        Builder.load_file("screens/mainscreen.kv")
-        Builder.load_file("screens/crud.kv")
-        Builder.load_file("screens/cadastrar_aluno.kv")
-        Builder.load_file("screens/consultar_aluno.kv")
-        Builder.load_file("screens/cadastrar_professor.kv")
-        Builder.load_file("screens/consultar_professor.kv")
-        Builder.load_file("screens/cadastrar_funcionario.kv")
-        Builder.load_file("screens/consultar_funcionario.kv")
-        Builder.load_file("screens/popup.kv")
-        Builder.load_file("screens/cadastrar_sala.kv")
-        Builder.load_file("screens/cadastrar_curso.kv")
-        Builder.load_file("screens/cadastrar_alunoturma.kv")
-        Builder.load_file("screens/cadastrar_pagamento.kv")
-        Builder.load_file("screens/cadastrar_turma.kv")
-        Builder.load_file("screens/consultar_sala.kv")
-        Builder.load_file("screens/consultar_curso.kv")
-        Builder.load_file("screens/consultar_alunoturma.kv")
-        Builder.load_file("screens/consultar_turma.kv")
-        Builder.load_file("screens/consultar_pagamento.kv")
+        Builder.load_file("screens.kv")
 
         Window.clearcolor = (1, 1, 1, 1)
         # Window.maximize()
