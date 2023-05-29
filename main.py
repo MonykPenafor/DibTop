@@ -66,6 +66,42 @@ def principal(self):
     self.manager.current = 'principal'
 
 
+def deletar(self, cod, tabela):
+    def confirmar_exclusao():
+        try:
+            conn = conectar()
+            cur = conn.cursor()
+
+            id_ = int(cod)
+
+            if tabela == 'aluno':
+                script = 'DELETE FROM aluno WHERE id_aluno = %s;'
+            elif tabela == 'prof':
+                script = 'DELETE FROM professor WHERE id_professor = %s;'
+            elif tabela == 'func':
+                script = 'DELETE FROM funcionario WHERE id_funcionario = %s;'
+            elif tabela == 'sala':
+                script = 'DELETE FROM sala WHERE id_sala = %s;'
+            else:
+                script = 'deu erro'
+
+            cur.execute(script, (id_,))
+            conn.commit()
+            conn.close()
+
+            toast("Registro excluído com sucesso!", duration=5)
+
+            btn = self.btnbuscar
+            btn.trigger_action()
+
+        except Exception as e:
+            toast(f"Error: {e}", duration=5)
+            print(e)
+
+    popup = ConfirmationPopup(callback=confirmar_exclusao)
+    popup.open()
+
+
 # ---------------------   CLASES   ----------------------------
 
 class NavigationManager:
@@ -172,29 +208,7 @@ class AlunoListItem(TwoLineAvatarIconListItem, EventDispatcher):
         self.cpf = cpf
 
     def deletar(self):
-        def confirmar_exclusao():
-            try:
-                conn = conectar()
-                cur = conn.cursor()
-
-                id_aluno = int(self.id_aluno)
-
-                cur.execute('''DELETE FROM aluno WHERE id_aluno = %s;''', (id_aluno,))
-
-                conn.commit()
-                conn.close()
-
-                toast("Registro excluído com sucesso!", duration=5)
-
-                btn = self.btnbuscar
-                btn.trigger_action()
-
-            except Exception as e:
-                toast(f"Error: {e}", duration=5)
-                print(e)
-
-        popup = ConfirmationPopup(callback=confirmar_exclusao)
-        popup.open()
+        deletar(self, self.id_aluno, 'aluno')
 
 
 class ProfListItem(TwoLineAvatarIconListItem, EventDispatcher):
@@ -209,28 +223,7 @@ class ProfListItem(TwoLineAvatarIconListItem, EventDispatcher):
         self.cpf = cpf
 
     def deletar(self):
-        def confirmar_exclusao():
-            try:
-                conn = conectar()
-                cur = conn.cursor()
-
-                id_professor = int(self.id_professor)
-
-                cur.execute('''DELETE FROM professor WHERE id_professor = %s;''', (id_professor,))
-                conn.commit()
-                conn.close()
-
-                toast("Registro excluído com sucesso!", duration=5)
-
-                btn = self.btnbuscar
-                btn.trigger_action()
-
-            except Exception as e:
-                toast(f"Error: {e}", duration=5)
-                print(e)
-
-        popup = ConfirmationPopup(callback=confirmar_exclusao)
-        popup.open()
+        deletar(self, self.id_professor, 'prof')
 
 
 class FuncListItem(TwoLineAvatarIconListItem, EventDispatcher):
@@ -244,28 +237,7 @@ class FuncListItem(TwoLineAvatarIconListItem, EventDispatcher):
         self.login = login
 
     def deletar(self):
-        def confirmar_exclusao():
-            try:
-                conn = conectar()
-                cur = conn.cursor()
-
-                id_func = int(self.id_func)
-
-                cur.execute('''DELETE FROM funcionario WHERE id_funcionario = %s;''', (id_func,))
-                conn.commit()
-                conn.close()
-
-                toast("Registro excluído com sucesso!", duration=5)
-
-                btn = self.btnbuscar
-                btn.trigger_action()
-
-            except Exception as e:
-                toast(f"Error: {e}", duration=5)
-                print(e)
-
-        popup = ConfirmationPopup(callback=confirmar_exclusao)
-        popup.open()
+        deletar(self, self.id_func, 'func')
 
 
 class SalaListItem(TwoLineAvatarIconListItem, EventDispatcher):
@@ -279,28 +251,7 @@ class SalaListItem(TwoLineAvatarIconListItem, EventDispatcher):
         self.capacidade = 'capacidade:' + capacidade
 
     def deletar(self):
-        def confirmar_exclusao():
-            try:
-                conn = conectar()
-                cur = conn.cursor()
-
-                id_sala = int(self.id_sala)
-
-                cur.execute('''DELETE FROM sala WHERE id_sala = %s;''', (id_sala,))
-                conn.commit()
-                conn.close()
-
-                toast("Registro excluído com sucesso!", duration=5)
-
-                btn = self.btnbuscar
-                btn.trigger_action()
-
-            except Exception as e:
-                toast(f"Error: {e}", duration=5)
-                print(e)
-
-        popup = ConfirmationPopup(callback=confirmar_exclusao)
-        popup.open()
+        deletar(self, self.id_sala, 'sala')
 
 
 class HoverButton(Button):
