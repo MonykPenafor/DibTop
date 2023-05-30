@@ -1,12 +1,10 @@
 from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.properties import StringProperty
-from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, NoTransition
-from kivy.uix.textinput import TextInput
+from kivy.uix.spinner import Spinner
 from kivymd.uix.label import MDLabel
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
@@ -286,6 +284,10 @@ class ConfirmationPopup(Popup):
         self.dismiss()
 
 
+class CustomSpinner(Spinner):
+    pass
+
+
 # ---------------------  CLASES MDSCREEN --------------------
 
 
@@ -380,7 +382,6 @@ class CadastrarAluno(MDScreen):
     def salvar_dados(self):
 
         try:
-
             idaluno = self.ids.idaluno.text
             nome = self.ids.idnome.text
             cpf = self.ids.idcpf.text
@@ -458,7 +459,6 @@ class CadastrarProfessor(MDScreen):
 
     def salvar_dados(self):
         try:
-
             idprof = self.ids.idprof.text
             nome = self.ids.nome.text
             cpf = self.ids.cpf.text
@@ -533,17 +533,14 @@ class CadastrarFuncionario(MDScreen):
 
                 conn = conectar()
                 cur = conn.cursor()
-
-                cur.execute("""INSERT into Funcionario (nome, login, senha)Values (%s, %s, %s)
-                """, (nome, login, senha))
-
+                cur.execute("""INSERT into Funcionario (nome, login, senha)Values (%s, %s, %s)""", (nome, login, senha))
                 conn.commit()
 
                 toast("Salvo com sucesso!", duration=2)
                 self.principal()
 
             else:
-                toast('senhas não coincidem', duration=4)
+                toast('Senhas não coincidem', duration=4)
 
         except Exception as e:
             toast(f"Erro ao salvar dados: {e}", duration=5)
@@ -577,7 +574,7 @@ class ConsultarFuncionario(MDScreen):
             print(e)
 
     def novo(self):
-        self.manager.current = 'cad_aluno'
+        self.manager.current = 'cad_funcionario'
 
 
 class CadastrarSala(MDScreen):
@@ -642,6 +639,47 @@ class ConsultarSala(MDScreen):
         self.manager.current = 'cad_sala'
 
 
+class CadastrarCurso(MDScreen):
+
+    def principal(self):
+        principal(self)
+
+    def salvar_dados(self):
+        try:
+
+            idsala = '1'
+
+            idcurso = self.ids.idcurso.text
+            ch = self.ids.ch.text
+            descricao = self.ids.desc.text
+            numod = self.ids.numod.text
+            valor = self.ids.valor.text
+            dupli = self.ids.dupli.text
+
+            conn = conectar()
+            cur = conn.cursor()
+
+            if idcurso == '-':
+                cur.execute("""INSERT into Curso (id_sala, descricao, CH, num_modulos, VLR_total, num_duplicatas) 
+                Values (%s, %s, %s, %s, %s, %s)""", (idsala, descricao, ch, numod, valor, dupli))
+            else:
+                cur.execute("""UPDATE Curso
+                            SET id_sala = %s, descricao = %s, CH = %s, num_modulos = %s, VLR_total = %s, num_duplicatas = %s
+                            WHERE id_curso = %s""", (idsala, descricao, ch, numod, valor, dupli, idcurso))
+
+            conn.commit()  # Confirma a transação
+
+            toast("Salvo com sucesso!", duration=2)
+            self.principal()
+
+        except Exception as e:
+            toast(f"Erro ao salvar dados: {e}", duration=2)
+
+
+class ConsultarCurso(MDScreen):
+    pass
+
+
 class CadastrarTurma(MDScreen):
     pass
 
@@ -663,14 +701,6 @@ class CadastrarPagamento(MDScreen):
 
 
 class ConsultarPagamento(MDScreen):
-    pass
-
-
-class CadastrarCurso(MDScreen):
-    pass
-
-
-class ConsultarCurso(MDScreen):
     pass
 
 
