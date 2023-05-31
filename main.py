@@ -100,6 +100,11 @@ def deletar(self, cod, tabela):
     popup.open()
 
 
+def pegar_id(opcao):
+    opcao = opcao.split('-')[0].strip()
+    return opcao
+
+
 # ---------------------   CLASES   ----------------------------
 
 class NavigationManager:
@@ -644,11 +649,26 @@ class CadastrarCurso(MDScreen):
     def principal(self):
         principal(self)
 
+    def opcoes(self):
+        op = []
+
+        conn = conectar()
+        cur = conn.cursor()
+
+        cur.execute('SELECT * FROM sala')
+        consulta = cur.fetchall()
+        print(consulta)
+
+        for row in consulta:
+            idc, desc, n, capac = row
+            frase = str(idc) + ' - ' + desc + ' (' + str(n) + '), capac: ' + str(capac)
+            op.append(frase)
+        return op
+
     def salvar_dados(self):
         try:
 
-            idsala = '1'
-
+            idsala = pegar_id(self.ids.sala.text)
             idcurso = self.ids.idcurso.text
             ch = self.ids.ch.text
             descricao = self.ids.desc.text
@@ -663,9 +683,8 @@ class CadastrarCurso(MDScreen):
                 cur.execute("""INSERT into Curso (id_sala, descricao, CH, num_modulos, VLR_total, num_duplicatas) 
                 Values (%s, %s, %s, %s, %s, %s)""", (idsala, descricao, ch, numod, valor, dupli))
             else:
-                cur.execute("""UPDATE Curso
-                            SET id_sala = %s, descricao = %s, CH = %s, num_modulos = %s, VLR_total = %s, num_duplicatas = %s
-                            WHERE id_curso = %s""", (idsala, descricao, ch, numod, valor, dupli, idcurso))
+                cur.execute("""UPDATE Curso SET id_sala = %s, descricao = %s, CH = %s, num_modulos = %s, VLR_total = %s,
+                 num_duplicatas = %s WHERE id_curso = %s""", (idsala, descricao, ch, numod, valor, dupli, idcurso))
 
             conn.commit()  # Confirma a transação
 

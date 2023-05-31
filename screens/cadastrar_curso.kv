@@ -52,18 +52,19 @@
                     #line_color_focus: [0,1,0,1]
                     write_tab: False
 
+            BoxLayout:
                 CustomSpinner:
                     id: sala
                     text: 'Sala'
-                    size_hint: 0.1, None  # Reduz o tamanho verticalmente (altura)
-                    height: dp(30)       # Define uma altura específica (30 pixels neste exemplo)
-                    size_hint_x: None    # Permite definir uma largura fixa
-                    width: dp(150)        # Define uma largura específica (80 pixels neste exemplo)
-                    pos_hint: {'center_x':0.5,'center_y':0.8}  # Centraliza horizontalmente
-                    values: 'a', 'a', 'a', 'v'  # Os valores do spinner
-                    font_size: '17sp'    # Define o tamanho da fonte
-                    color: 'black' # Define a cor do texto como branco (RGBA)
-                    background_normal: ''  # Remove o fundo padrão do Spinner
+                    size_hint: 0.1, None
+                    height: dp(30)
+                    size_hint_x: None
+                    width: dp(500)
+                    pos_hint: {'center_x':0.5,'center_y':0.8}
+                    values: root.opcoes()
+                    font_size: '17sp'
+                    color: 'black' # Define a cor do texto
+                    background_normal: ''
                     background_color: 0.18,0.53,1,1  # Define a cor de fundo do Spinner
 
                     option_cls: Factory.get('SpinnerOption')  # Define a classe das opções do spinner
@@ -127,11 +128,11 @@
 
 
 <SpinnerOption>:
-    background_normal: ''  # Remove o fundo padrão do Spinner
-    background_color: 0.18,0.53,1,1 # Define a cor de fundo do Spinner
+    background_normal: ''
+    background_color: 0.18,0.53,1,1 # Define a cor de fundo
     color: 'black'  # Define a cor do texto das opções
-    size_hint: 0.1, None  # Reduz o tamanho verticalmente (altura)
-    height: dp(30)       # Define uma altura específica (30 pixels neste exemplo)
-    size_hint_x: None    # Permite definir uma largura fixa
-    width: dp(150)        # Define uma largura específica (80 pixels neste exemplo)
-    font_size: '15sp'    # Define o tamanho da fonte
+    size_hint: 0.1, None
+    height: dp(30)
+    size_hint_x: None
+    width: dp(500)
+    font_size: '15sp'
