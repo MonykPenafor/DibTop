@@ -4,7 +4,7 @@ from kivy.properties import StringProperty
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, NoTransition
-from kivy.uix.spinner import Spinner
+from kivy.uix.spinner import Spinner, SpinnerOption
 from kivymd.uix.label import MDLabel
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
@@ -291,6 +291,7 @@ class ConfirmationPopup(Popup):
 
 class CustomSpinner(Spinner):
     pass
+
 
 
 # ---------------------  CLASES MDSCREEN --------------------
@@ -657,7 +658,6 @@ class CadastrarCurso(MDScreen):
 
         cur.execute('SELECT * FROM sala')
         consulta = cur.fetchall()
-        print(consulta)
 
         for row in consulta:
             idc, desc, n, capac = row
@@ -700,8 +700,51 @@ class ConsultarCurso(MDScreen):
 
 
 class CadastrarTurma(MDScreen):
-    pass
+    def principal(self):
+        principal(self)
 
+    def salvar_dados(self):
+
+        try:
+            idaluno = self.ids.idaluno.text
+            nome = self.ids.idnome.text
+            cpf = self.ids.idcpf.text
+            dt_nasc = self.ids.iddtnasc.text
+            endereco = self.ids.idend.text
+            email = self.ids.idemail.text
+            telefone = self.ids.idtel.text
+            naturalidade = self.ids.idnat.text
+            nome_mae = self.ids.idnomemae.text
+            estado_civil = self.ids.idestcivil.text
+            escolaridade = self.ids.idesc.text
+
+            # Converte a string da data de nascimento para um objeto datetime
+            dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
+
+            conn = conectar()
+            cur = conn.cursor()
+
+            if idaluno == '-':
+                cur.execute("""INSERT into Aluno 
+                 (nome,cpf,dt_nasc,endereco,email,telefone,naturalidade,nome_mae,estado_civil,escolaridade) 
+                 Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 """, (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
+                       nome_mae, estado_civil, escolaridade))
+            else:
+                cur.execute("""UPDATE Aluno 
+                             SET nome = %s,cpf = %s,dt_nasc = %s,endereco = %s,email = %s,telefone = %s,
+                             naturalidade = %s,nome_mae = %s,estado_civil = %s,escolaridade = %s
+                             WHERE id_aluno = %s""", (nome, cpf, dt_nasc, endereco, email, telefone,
+                                                      naturalidade, nome_mae, estado_civil, escolaridade, idaluno))
+
+            conn.commit()  # Confirma a transação
+            toast("Salvo com sucesso!", duration=2)
+
+            principal(self)
+
+        except Exception as e:
+            toast(f"Erro ao salvar dados: {e}", duration=5)
+            print(e)
 
 class ConsultarTurma(MDScreen):
     pass
