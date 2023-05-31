@@ -107,16 +107,6 @@ def pegar_id(opcao):
 
 # ---------------------   CLASES   ----------------------------
 
-class NavigationManager:
-    tabela = StringProperty('')
-
-    def __init__(self, screen_manager):
-        self.screen_manager = screen_manager
-
-    def return_to_principal(self):
-        self.screen_manager.current = 'principal'
-
-
 class MainScreenManager(ScreenManager):
     pass
 
@@ -125,16 +115,93 @@ class ListaItem(TwoLineAvatarIconListItem):
     info1 = StringProperty('')
     info2 = StringProperty('')
 
-    def __init__(self, id_item='', info1='', info2='', tabela='', btnbuscar=None, **kwargs):
+    def __init__(self, id_item='', info1='', info2='', tabela='', btnbuscar=None, screen_manager=None, **kwargs):
         super(ListaItem, self).__init__(**kwargs)
+        self.screen_manager = screen_manager
         self.btnbuscar = btnbuscar
         self.id_item = id_item
         self.info1 = info1
         self.info2 = info2
         self.tabela = tabela
 
+        print(self.screen_manager)
+
     def deletar(self):
         deletar(self, self.id_item, self.tabela)
+
+    def tela_editar(self, tabela):
+
+        if tabela == 'aluno':
+
+            self.screen_manager.current = 'cad_aluno'
+            tela_atual = self.screen_manager.current_screen
+
+            try:
+                conn = conectar()
+                cur = conn.cursor()
+
+                id_item = self.id_item
+
+                cur.execute('''SELECT nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, 
+                estado_civil, escolaridade FROM aluno WHERE aluno.id_aluno = %s''', (id_item,))
+
+                consulta = cur.fetchone()
+
+                nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil, \
+                    escolaridade = consulta
+
+                tela_atual.ids.idaluno.text = id_item
+                tela_atual.ids.idnome.text = nome
+                tela_atual.ids.idcpf.text = cpf
+                dt_nasc = conf_data(dt_nasc)
+                tela_atual.ids.iddtnasc.text = dt_nasc
+                tela_atual.ids.idend.text = endereco
+                tela_atual.ids.idemail.text = email
+                tela_atual.ids.idtel.text = telefone
+                tela_atual.ids.idnat.text = naturalidade
+                tela_atual.ids.idnomemae.text = nome_mae
+                tela_atual.ids.idestcivil.text = estado_civil
+                tela_atual.ids.idesc.text = escolaridade
+
+                conn.commit()
+                conn.close()
+
+            except Exception as e:
+                toast(f"Error: {e}", duration=5)
+                print(e)
+
+        if tabela == 'professor':
+
+            self.screen_manager.current = 'cad_professor'
+            tela_atual = self.screen_manager.current_screen
+
+            try:
+                conn = conectar()
+                cur = conn.cursor()
+
+                id_item = self.id_item
+
+                cur.execute('''SELECT nome, cpf, area_ensino, endereco, email, telefone FROM professor
+                               WHERE professor.id_professor = %s''', (id_item,))
+
+                consulta = cur.fetchone()
+
+                nome, cpf, area_ensino, endereco, email, telefone = consulta
+
+                tela_atual.ids.idprof.text = id_item
+                tela_atual.ids.nome.text = nome
+                tela_atual.ids.cpf.text = cpf
+                tela_atual.ids.ae.text = cpf
+                tela_atual.ids.end.text = endereco
+                tela_atual.ids.email.text = email
+                tela_atual.ids.tel.text = telefone
+
+                conn.commit()
+                conn.close()
+
+            except Exception as e:
+                toast(f"Error: {e}", duration=5)
+                print(e)
 
 
 class HoverButton(Button):
@@ -205,7 +272,6 @@ class LoginScreen(MDScreen):
 class CrudScreen(MDScreen):
     btn_name = StringProperty('')
     logado = StringProperty('')
-    print(logado, 'logado')
 
     def cadastrar(self, btn_name=None):
         btn_name = btn_name or self.btn_name
@@ -243,16 +309,13 @@ class Consultar(MDScreen):
             cur = conn.cursor()
 
             if self.tabela == 'aluno':
-                script = 'SELECT aluno.id_aluno, aluno.nome, aluno.cpf FROM aluno WHERE aluno.nome LIKE %s ORDER BY 2'
+                script = 'SELECT id_aluno, nome, cpf FROM aluno WHERE nome LIKE %s ORDER BY 2'
             elif self.tabela == 'professor':
-                script = '''SELECT professor.id_professor, professor.nome, professor.cpf FROM professor 
-                            WHERE professor.nome LIKE %s ORDER BY 2'''
+                script = 'SELECT id_professor, nome, cpf FROM professor WHERE nome LIKE %s ORDER BY 2'
             elif self.tabela == 'funcionario':
-                script = '''SELECT funcionario.id_funcionario, funcionario.nome,funcionario.login FROM funcionario
-                           WHERE funcionario.nome LIKE %s ORDER BY 2'''
+                script = 'SELECT id_funcionario, nome, login FROM funcionario WHERE nome LIKE %s ORDER BY 2'
             elif self.tabela == 'sala':
-                script = '''SELECT sala.id_sala, sala.descricao, sala.capacidade FROM sala
-                           WHERE sala.descricao LIKE %s ORDER BY 2'''
+                script = 'SELECT id_sala, descricao, capacidade FROM sala WHERE descricao LIKE %s ORDER BY 2'
             else:
                 script = 'deu erro'
 
@@ -270,7 +333,7 @@ class Consultar(MDScreen):
                     info2 = 'capacidade: ' + str(info2)
 
                 item = ListaItem(id_item=str(id_it), info1=str(info1), info2=str(info2), tabela=self.tabela,
-                                 btnbuscar=btnbuscar)
+                                 screen_manager=self.manager, btnbuscar=btnbuscar)
 
                 self.ids.consulta_list.add_widget(item)
 
@@ -301,6 +364,7 @@ class Consultar(MDScreen):
         self.manager.current = 'principal'
 
 
+# ---------------------  CLASES MDSCREEN - TELAS DE CADASTRO --------------------
 class CadastrarAluno(MDScreen):
     def principal(self):
         principal(self)
@@ -320,24 +384,21 @@ class CadastrarAluno(MDScreen):
             estado_civil = self.ids.idestcivil.text
             escolaridade = self.ids.idesc.text
 
-            # Converte a string da data de nascimento para um objeto datetime
             dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
 
             conn = conectar()
             cur = conn.cursor()
 
             if idaluno == '-':
-                cur.execute("""INSERT into Aluno 
-                (nome,cpf,dt_nasc,endereco,email,telefone,naturalidade,nome_mae,estado_civil,escolaridade) 
-                Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
-                      nome_mae, estado_civil, escolaridade))
+                cur.execute("""INSERT into Aluno (nome,cpf,dt_nasc,endereco,email,telefone,naturalidade,nome_mae,
+                                estado_civil,escolaridade) Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                            (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil,
+                             escolaridade))
             else:
-                cur.execute("""UPDATE Aluno 
-                            SET nome = %s,cpf = %s,dt_nasc = %s,endereco = %s,email = %s,telefone = %s,
-                            naturalidade = %s,nome_mae = %s,estado_civil = %s,escolaridade = %s
-                            WHERE id_aluno = %s""", (nome, cpf, dt_nasc, endereco, email, telefone,
-                                                     naturalidade, nome_mae, estado_civil, escolaridade, idaluno))
+                cur.execute("""UPDATE Aluno SET nome = %s,cpf = %s,dt_nasc = %s,endereco = %s,email = %s,telefone = %s,
+                            naturalidade = %s,nome_mae = %s,estado_civil = %s,escolaridade = %s WHERE id_aluno = %s""",
+                            (nome, cpf, dt_nasc, endereco, email, telefone,naturalidade, nome_mae, estado_civil,
+                             escolaridade, idaluno))
 
             conn.commit()  # Confirma a transação
             toast("Salvo com sucesso!", duration=2)
@@ -367,15 +428,12 @@ class CadastrarProfessor(MDScreen):
             cur = conn.cursor()
 
             if idprof == '-':
-                cur.execute("""INSERT into Professor
-                (nome, cpf, area_ensino, endereco, email, telefone)
-                Values (%s, %s, %s, %s, %s, %s)
-                """, (nome, cpf, area, endereco, email, telefone))
+                cur.execute("""INSERT into Professor (nome, cpf, area_ensino, endereco, email, telefone)
+                Values (%s, %s, %s, %s, %s, %s) """, (nome, cpf, area, endereco, email, telefone))
 
             else:
-                cur.execute("""UPDATE Professor
-                            SET nome = %s,cpf = %s,area_ensino = %s,endereco = %s,email = %s,telefone = %s
-                            WHERE id_professor = %s""", (nome, cpf, area, endereco, email, telefone, idprof))
+                cur.execute("""UPDATE Professor SET nome = %s,cpf = %s,area_ensino = %s,endereco = %s,email = %s,
+                telefone = %s WHERE id_professor = %s""", (nome, cpf, area, endereco, email, telefone, idprof))
 
             conn.commit()  # Confirma a transação
             toast("Salvo com sucesso!", duration=2)
@@ -433,11 +491,10 @@ class CadastrarSala(MDScreen):
             cur = conn.cursor()
 
             if idsala == '-':
-                cur.execute("""INSERT into Sala (descricao, numero, capacidade) Values (%s, %s, %s)
-                """, (descricao, numero, capacidade))
+                cur.execute("""INSERT into Sala (descricao, numero, capacidade) 
+                                Values (%s, %s, %s)""", (descricao, numero, capacidade))
             else:
-                cur.execute("""UPDATE Sala
-                            SET descricao = %s,numero = %s,capacidade = %s
+                cur.execute("""UPDATE Sala SET descricao = %s,numero = %s,capacidade = %s
                             WHERE id_sala = %s""", (descricao, numero, capacidade, idsala))
 
             conn.commit()  # Confirma a transação
@@ -559,10 +616,6 @@ class CadastrarPagamento(MDScreen):
 
 class DibTopApp(MDApp):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.navigation = None
-
     def build(self):
         Builder.load_file("screens.kv")
 
@@ -573,7 +626,6 @@ class DibTopApp(MDApp):
         sm = MainScreenManager(transition=NoTransition())
         #   sm.current = 'login'
 
-        self.navigation = NavigationManager(sm)  # Passando a instância de MainScreenManager para NavigationManager
         return sm
 
 
