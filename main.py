@@ -1,4 +1,3 @@
-from kivy.event import EventDispatcher
 from kivy.lang import Builder
 from kivy.properties import StringProperty
 from kivy.uix.button import Button
@@ -234,6 +233,74 @@ class CrudScreen(MDScreen):
             self.manager.current = 'consultar'
 
 
+class Consultar(MDScreen):
+    tabela = StringProperty('')
+    print(tabela, 'nome tabela')
+
+    def pesquisar(self, texto):
+        try:
+            conn = conectar()
+            cur = conn.cursor()
+
+            if self.tabela == 'aluno':
+                script = 'SELECT aluno.id_aluno, aluno.nome, aluno.cpf FROM aluno WHERE aluno.nome LIKE %s ORDER BY 2'
+            elif self.tabela == 'professor':
+                script = '''SELECT professor.id_professor, professor.nome, professor.cpf FROM professor 
+                            WHERE professor.nome LIKE %s ORDER BY 2'''
+            elif self.tabela == 'funcionario':
+                script = '''SELECT funcionario.id_funcionario, funcionario.nome,funcionario.login FROM funcionario
+                           WHERE funcionario.nome LIKE %s ORDER BY 2'''
+            elif self.tabela == 'sala':
+                script = '''SELECT sala.id_sala, sala.descricao, sala.capacidade FROM sala
+                           WHERE sala.descricao LIKE %s ORDER BY 2'''
+            else:
+                script = 'deu erro'
+
+            cur.execute(script, ('%' + texto + '%',))
+
+            self.ids.consulta_list.clear_widgets()
+
+            btnbuscar = self.ids.btnbuscar
+            consulta = cur.fetchall()
+
+            for row in consulta:
+                id_it, info1, info2 = row
+
+                if self.tabela == 'sala':
+                    info2 = 'capacidade: ' + str(info2)
+
+                item = ListaItem(id_item=str(id_it), info1=str(info1), info2=str(info2), tabela=self.tabela,
+                                 btnbuscar=btnbuscar)
+
+                self.ids.consulta_list.add_widget(item)
+
+            conn.close()
+
+        except Exception as e:
+            toast(f"Erro: {e}", duration=5)
+            print(e)
+
+    def novo(self):
+
+        if self.tabela == 'aluno':
+            tela = 'cad_aluno'
+        elif self.tabela == 'professor':
+            tela = 'cad_professor'
+        elif self.tabela == 'funcionario':
+            tela = 'cad_funcionario'
+        elif self.tabela == 'sala':
+            tela = 'cad_sala'
+        else:
+            tela = 'principal'
+
+        self.ids.consulta_list.clear_widgets()
+        self.manager.current = tela
+
+    def cancelar(self):
+        self.ids.consulta_list.clear_widgets()
+        self.manager.current = 'principal'
+
+
 class CadastrarAluno(MDScreen):
     def principal(self):
         principal(self)
@@ -382,74 +449,6 @@ class CadastrarSala(MDScreen):
             toast(f"Erro ao salvar dados: {e}", duration=2)
 
 
-class Consultar(MDScreen):
-    tabela = StringProperty('')
-    print(tabela, 'nome tabela')
-
-    def pesquisar(self, texto):
-        try:
-            conn = conectar()
-            cur = conn.cursor()
-
-            if self.tabela == 'aluno':
-                script = 'SELECT aluno.id_aluno, aluno.nome, aluno.cpf FROM aluno WHERE aluno.nome LIKE %s ORDER BY 2'
-            elif self.tabela == 'professor':
-                script = '''SELECT professor.id_professor, professor.nome, professor.cpf FROM professor 
-                            WHERE professor.nome LIKE %s ORDER BY 2'''
-            elif self.tabela == 'funcionario':
-                script = '''SELECT funcionario.id_funcionario, funcionario.nome,funcionario.login FROM funcionario
-                           WHERE funcionario.nome LIKE %s ORDER BY 2'''
-            elif self.tabela == 'sala':
-                script = '''SELECT sala.id_sala, sala.descricao, sala.capacidade FROM sala
-                           WHERE sala.descricao LIKE %s ORDER BY 2'''
-            else:
-                script = 'deu erro'
-
-            cur.execute(script, ('%' + texto + '%',))
-
-            self.ids.consulta_list.clear_widgets()
-
-            btnbuscar = self.ids.btnbuscar
-            consulta = cur.fetchall()
-
-            for row in consulta:
-                id_it, info1, info2 = row
-
-                if self.tabela == 'sala':
-                    info2 = 'capacidade: ' + str(info2)
-
-                item = ListaItem(id_item=str(id_it), info1=str(info1), info2=str(info2), tabela=self.tabela,
-                                 btnbuscar=btnbuscar)
-
-                self.ids.consulta_list.add_widget(item)
-
-            conn.close()
-
-        except Exception as e:
-            toast(f"Erro: {e}", duration=5)
-            print(e)
-
-    def novo(self):
-
-        if self.tabela == 'aluno':
-            tela = 'cad_aluno'
-        elif self.tabela == 'professor':
-            tela = 'cad_professor'
-        elif self.tabela == 'funcionario':
-            tela = 'cad_funcionario'
-        elif self.tabela == 'sala':
-            tela = 'cad_sala'
-        else:
-            tela = 'principal'
-
-        self.ids.consulta_list.clear_widgets()
-        self.manager.current = tela
-
-    def cancelar(self):
-        self.ids.consulta_list.clear_widgets()
-        self.manager.current = 'principal'
-
-
 class CadastrarCurso(MDScreen):
 
     def principal(self):
@@ -500,10 +499,6 @@ class CadastrarCurso(MDScreen):
             toast(f"Erro ao salvar dados: {e}", duration=2)
 
 
-class ConsultarCurso(MDScreen):
-    pass
-
-
 class CadastrarTurma(MDScreen):
     def principal(self):
         principal(self)
@@ -552,23 +547,11 @@ class CadastrarTurma(MDScreen):
             print(e)
 
 
-class ConsultarTurma(MDScreen):
-    pass
-
-
 class CadastrarAlunoTurma(MDScreen):
     pass
 
 
-class ConsultarAlunoTurma(MDScreen):
-    pass
-
-
 class CadastrarPagamento(MDScreen):
-    pass
-
-
-class ConsultarPagamento(MDScreen):
     pass
 
 
