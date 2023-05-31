@@ -4,7 +4,7 @@ from kivy.properties import StringProperty
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, NoTransition
-from kivy.uix.spinner import Spinner, SpinnerOption
+from kivy.uix.spinner import Spinner
 from kivymd.uix.label import MDLabel
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
@@ -17,6 +17,7 @@ from kivymd.uix.textfield import MDTextField
 
 
 # ----------------------  FUNÇÕES -------------------------------
+
 def conectar():
     conn = psycopg2.connect(
         host="localhost",
@@ -74,9 +75,9 @@ def deletar(self, cod, tabela):
 
             if tabela == 'aluno':
                 script = 'DELETE FROM aluno WHERE id_aluno = %s;'
-            elif tabela == 'prof':
+            elif tabela == 'professor':
                 script = 'DELETE FROM professor WHERE id_professor = %s;'
-            elif tabela == 'func':
+            elif tabela == 'funcionario':
                 script = 'DELETE FROM funcionario WHERE id_funcionario = %s;'
             elif tabela == 'sala':
                 script = 'DELETE FROM sala WHERE id_sala = %s;'
@@ -108,153 +109,33 @@ def pegar_id(opcao):
 # ---------------------   CLASES   ----------------------------
 
 class NavigationManager:
+    tabela = StringProperty('')
+
     def __init__(self, screen_manager):
         self.screen_manager = screen_manager
 
     def return_to_principal(self):
         self.screen_manager.current = 'principal'
 
-    def tela_editar(self, instancia):
-
-        if isinstance(instancia, AlunoListItem):
-
-            self.screen_manager.current = 'cad_aluno'
-            tela_atual = self.screen_manager.current_screen
-
-            try:
-                conn = conectar()
-                cur = conn.cursor()
-
-                id_aluno = instancia.id_aluno
-
-                cur.execute('''SELECT aluno.nome, aluno.cpf, aluno.dt_nasc, aluno.endereco, aluno.email, aluno.telefone, 
-                                aluno.naturalidade, aluno.nome_mae, aluno.estado_civil, aluno.escolaridade
-                               FROM aluno
-                               WHERE aluno.id_aluno = %s
-                               ''', (id_aluno,))
-
-                consulta = cur.fetchone()
-
-                nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil, \
-                    escolaridade = consulta
-
-                tela_atual.ids.idaluno.text = id_aluno
-                tela_atual.ids.idnome.text = nome
-                tela_atual.ids.idcpf.text = cpf
-                dt_nasc = conf_data(dt_nasc)
-                tela_atual.ids.iddtnasc.text = dt_nasc
-                tela_atual.ids.idend.text = endereco
-                tela_atual.ids.idemail.text = email
-                tela_atual.ids.idtel.text = telefone
-                tela_atual.ids.idnat.text = naturalidade
-                tela_atual.ids.idnomemae.text = nome_mae
-                tela_atual.ids.idestcivil.text = estado_civil
-                tela_atual.ids.idesc.text = escolaridade
-
-                conn.commit()
-                conn.close()
-
-            except Exception as e:
-                toast(f"Error: {e}", duration=5)
-                print(e)
-
-        if isinstance(instancia, ProfListItem):
-
-            self.screen_manager.current = 'cad_professor'
-            tela_atual = self.screen_manager.current_screen
-
-            try:
-                conn = conectar()
-                cur = conn.cursor()
-
-                id_prof = instancia.id_professor
-
-                cur.execute('''SELECT professor.nome, professor.cpf, professor.area_ensino, 
-                                professor.endereco, professor.email, professor.telefone
-                               FROM professor
-                               WHERE professor.id_professor = %s
-                               ''', (id_prof,))
-
-                consulta = cur.fetchone()
-
-                nome, cpf, area_ensino, endereco, email, telefone = consulta
-
-                tela_atual.ids.idprof.text = id_prof
-                tela_atual.ids.nome.text = nome
-                tela_atual.ids.cpf.text = cpf
-                tela_atual.ids.ae.text = cpf
-                tela_atual.ids.end.text = endereco
-                tela_atual.ids.email.text = email
-                tela_atual.ids.tel.text = telefone
-
-                conn.commit()
-                conn.close()
-
-            except Exception as e:
-                toast(f"Error: {e}", duration=5)
-                print(e)
-
 
 class MainScreenManager(ScreenManager):
     pass
 
 
-class AlunoListItem(TwoLineAvatarIconListItem, EventDispatcher):
-    nome = StringProperty('')
-    cpf = StringProperty('')
+class ListaItem(TwoLineAvatarIconListItem):
+    info1 = StringProperty('')
+    info2 = StringProperty('')
 
-    def __init__(self, id_aluno='', nome='', cpf='', btnbuscar=None, **kwargs):
-        super(AlunoListItem, self).__init__(**kwargs)
+    def __init__(self, id_item='', info1='', info2='', tabela='', btnbuscar=None, **kwargs):
+        super(ListaItem, self).__init__(**kwargs)
         self.btnbuscar = btnbuscar
-        self.id_aluno = id_aluno
-        self.nome = nome
-        self.cpf = cpf
+        self.id_item = id_item
+        self.info1 = info1
+        self.info2 = info2
+        self.tabela = tabela
 
     def deletar(self):
-        deletar(self, self.id_aluno, 'aluno')
-
-
-class ProfListItem(TwoLineAvatarIconListItem, EventDispatcher):
-    nome = StringProperty('')
-    cpf = StringProperty('')
-
-    def __init__(self, id_professor='', nome='', cpf='', btnbuscar=None, **kwargs):
-        super(ProfListItem, self).__init__(**kwargs)
-        self.btnbuscar = btnbuscar
-        self.id_professor = id_professor
-        self.nome = nome
-        self.cpf = cpf
-
-    def deletar(self):
-        deletar(self, self.id_professor, 'prof')
-
-
-class FuncListItem(TwoLineAvatarIconListItem, EventDispatcher):
-    nome = StringProperty('')
-
-    def __init__(self, id_func='', nome='', login='', btnbuscar=None, **kwargs):
-        super(FuncListItem, self).__init__(**kwargs)
-        self.btnbuscar = btnbuscar
-        self.id_func = id_func
-        self.nome = nome
-        self.login = login
-
-    def deletar(self):
-        deletar(self, self.id_func, 'func')
-
-
-class SalaListItem(TwoLineAvatarIconListItem, EventDispatcher):
-    descricao = StringProperty('')
-
-    def __init__(self, id_sala='', descricao='', capacidade='', btnbuscar=None, **kwargs):
-        super(SalaListItem, self).__init__(**kwargs)
-        self.btnbuscar = btnbuscar
-        self.id_sala = id_sala
-        self.descricao = descricao
-        self.capacidade = 'capacidade:' + capacidade
-
-    def deletar(self):
-        deletar(self, self.id_sala, 'sala')
+        deletar(self, self.id_item, self.tabela)
 
 
 class HoverButton(Button):
@@ -293,7 +174,6 @@ class CustomSpinner(Spinner):
     pass
 
 
-
 # ---------------------  CLASES MDSCREEN --------------------
 
 
@@ -313,6 +193,7 @@ class LoginScreen(MDScreen):
             toast("Login e senha válidos", duration=2)
             self.manager.get_screen('principal').logado = login
             self.manager.get_screen('crud').logado = login
+
             self.manager.current = 'principal'
 
         else:
@@ -325,60 +206,32 @@ class LoginScreen(MDScreen):
 class CrudScreen(MDScreen):
     btn_name = StringProperty('')
     logado = StringProperty('')
+    print(logado, 'logado')
 
     def cadastrar(self, btn_name=None):
         btn_name = btn_name or self.btn_name
+        tela = 'cad_' + btn_name
 
-        if btn_name == 'aluno':
-            self.manager.current = "cad_aluno"
-        elif btn_name == 'turma':
-            self.manager.current = 'cad_turma'
-        elif btn_name == 'curso':
-            self.manager.current = 'cad_curso'
-        elif btn_name == 'prof':
-            self.manager.current = 'cad_professor'
-
-        elif btn_name == 'func':
+        if btn_name == 'funcionario':
             if self.logado == 'monykpp':
-                self.manager.current = 'cad_funcionario'
+                self.manager.current = tela
             else:
                 toast('Você não tem acesso ao cadastro de funcionarios')
-
-        elif btn_name == 'pag':
-            self.manager.current = 'cad_pag'
-        elif btn_name == 'at':
-            self.manager.current = 'cad_alunoturma'
-        elif btn_name == 'sala':
-            self.manager.current = 'cad_sala'
         else:
-            print('deu erro')
+            self.manager.current = tela
 
     def consultar(self, btn_name=None):
         btn_name = btn_name or self.btn_name
 
-        if btn_name == 'aluno':
-            self.manager.current = "con_aluno"
-        elif btn_name == 'turma':
-            self.manager.current = 'con_turma'
-        elif btn_name == 'curso':
-            self.manager.current = 'con_curso'
-        elif btn_name == 'prof':
-            self.manager.current = 'con_professor'
-
-        elif btn_name == 'func':
+        if btn_name == 'funcionario':
             if self.logado == 'monykpp':
-                self.manager.current = 'con_funcionario'
+                self.manager.get_screen('consultar').tabela = btn_name
+                self.manager.current = 'consultar'
             else:
                 toast('Você não tem acesso ao cadastro de funcionarios')
-
-        elif btn_name == 'pag':
-            self.manager.current = 'con_pag'
-        elif btn_name == 'at':
-            self.manager.current = 'con_alunoturma'
-        elif btn_name == 'sala':
-            self.manager.current = 'con_sala'
         else:
-            print('deu erro')
+            self.manager.get_screen('consultar').tabela = btn_name
+            self.manager.current = 'consultar'
 
 
 class CadastrarAluno(MDScreen):
@@ -429,36 +282,6 @@ class CadastrarAluno(MDScreen):
             print(e)
 
 
-class ConsultarAluno(MDScreen):
-
-    def pesquisar(self, texto):
-        try:
-            conn = conectar()
-            cur = conn.cursor()
-
-            cur.execute('''SELECT aluno.id_aluno, aluno.nome, aluno.cpf FROM aluno 
-            WHERE aluno.nome LIKE %s ORDER BY 2''', ('%' + texto + '%',))
-
-            self.ids.aluno_list.clear_widgets()
-
-            btnbuscar = self.ids.btnbuscar
-            consulta = cur.fetchall()
-
-            for row in consulta:
-                id_aluno, nome, cpf = row
-                aluno_item = AlunoListItem(id_aluno=str(id_aluno), nome=nome, cpf=cpf, btnbuscar=btnbuscar)
-                self.ids.aluno_list.add_widget(aluno_item)
-
-            conn.close()
-
-        except Exception as e:
-            toast(f"Erro: {e}", duration=5)
-            print(e)
-
-    def novo(self):
-        self.manager.current = 'cad_aluno'
-
-
 class CadastrarProfessor(MDScreen):
     def principal(self):
         principal(self)
@@ -497,32 +320,6 @@ class CadastrarProfessor(MDScreen):
             print(e)
 
 
-class ConsultarProfessor(MDScreen):
-    def pesquisar(self, texto):
-        try:
-            conn = conectar()
-            cur = conn.cursor()
-
-            cur.execute('''SELECT professor.id_professor, professor.nome, professor.cpf FROM professor 
-            WHERE professor.nome LIKE %s ORDER BY 2''', ('%' + texto + '%',))
-
-            self.ids.prof_list.clear_widgets()
-
-            btnbuscar = self.ids.btnbuscar
-            consulta = cur.fetchall()
-
-            for row in consulta:
-                id_professor, nome, cpf = row
-                prof_item = ProfListItem(id_professor=str(id_professor), nome=nome, cpf=cpf, btnbuscar=btnbuscar)
-                self.ids.prof_list.add_widget(prof_item)
-
-            conn.close()
-
-        except Exception as e:
-            toast(f"Erro: {e}", duration=5)
-            print(e)
-
-
 class CadastrarFuncionario(MDScreen):
     def principal(self):
         principal(self)
@@ -551,36 +348,6 @@ class CadastrarFuncionario(MDScreen):
         except Exception as e:
             toast(f"Erro ao salvar dados: {e}", duration=5)
             print(e)
-
-
-class ConsultarFuncionario(MDScreen):
-
-    def pesquisar(self, texto):
-        try:
-            conn = conectar()
-            cur = conn.cursor()
-
-            cur.execute('''SELECT funcionario.id_funcionario, funcionario.nome,funcionario.login FROM funcionario
-                           WHERE fucnionario.nome LIKE %s ORDER BY 2''', ('%' + texto + '%',))
-
-            self.ids.func_list.clear_widgets()
-
-            btnbuscar = self.ids.btnbuscar
-            consulta = cur.fetchall()
-
-            for row in consulta:
-                id_func, nome, login = row
-                func_item = FuncListItem(id_func=str(id_func), nome=nome, login=login, btnbuscar=btnbuscar)
-                self.ids.func_list.add_widget(func_item)
-
-            conn.close()
-
-        except Exception as e:
-            toast(f"Erro: {e}", duration=5)
-            print(e)
-
-    def novo(self):
-        self.manager.current = 'cad_funcionario'
 
 
 class CadastrarSala(MDScreen):
@@ -615,25 +382,46 @@ class CadastrarSala(MDScreen):
             toast(f"Erro ao salvar dados: {e}", duration=2)
 
 
-class ConsultarSala(MDScreen):
+class Consultar(MDScreen):
+    tabela = StringProperty('')
+    print(tabela, 'nome tabela')
 
     def pesquisar(self, texto):
         try:
             conn = conectar()
             cur = conn.cursor()
 
-            cur.execute('''SELECT sala.id_sala,sala.descricao, sala.capacidade FROM sala
-                           WHERE sala.descriçao LIKE %s ORDER BY 2''', ('%' + texto + '%',))
+            if self.tabela == 'aluno':
+                script = 'SELECT aluno.id_aluno, aluno.nome, aluno.cpf FROM aluno WHERE aluno.nome LIKE %s ORDER BY 2'
+            elif self.tabela == 'professor':
+                script = '''SELECT professor.id_professor, professor.nome, professor.cpf FROM professor 
+                            WHERE professor.nome LIKE %s ORDER BY 2'''
+            elif self.tabela == 'funcionario':
+                script = '''SELECT funcionario.id_funcionario, funcionario.nome,funcionario.login FROM funcionario
+                           WHERE funcionario.nome LIKE %s ORDER BY 2'''
+            elif self.tabela == 'sala':
+                script = '''SELECT sala.id_sala, sala.descricao, sala.capacidade FROM sala
+                           WHERE sala.descricao LIKE %s ORDER BY 2'''
+            else:
+                script = 'deu erro'
 
-            self.ids.sala_list.clear_widgets()
+            cur.execute(script, ('%' + texto + '%',))
+
+            self.ids.consulta_list.clear_widgets()
 
             btnbuscar = self.ids.btnbuscar
             consulta = cur.fetchall()
 
             for row in consulta:
-                id_sala, desc, cap = row
-                sala_item = SalaListItem(id_sala=str(id_sala), descricao=desc, capacidade=cap, btnbuscar=btnbuscar)
-                self.ids.sala_list.add_widget(sala_item)
+                id_it, info1, info2 = row
+
+                if self.tabela == 'sala':
+                    info2 = 'capacidade: ' + str(info2)
+
+                item = ListaItem(id_item=str(id_it), info1=str(info1), info2=str(info2), tabela=self.tabela,
+                                 btnbuscar=btnbuscar)
+
+                self.ids.consulta_list.add_widget(item)
 
             conn.close()
 
@@ -642,7 +430,24 @@ class ConsultarSala(MDScreen):
             print(e)
 
     def novo(self):
-        self.manager.current = 'cad_sala'
+
+        if self.tabela == 'aluno':
+            tela = 'cad_aluno'
+        elif self.tabela == 'professor':
+            tela = 'cad_professor'
+        elif self.tabela == 'funcionario':
+            tela = 'cad_funcionario'
+        elif self.tabela == 'sala':
+            tela = 'cad_sala'
+        else:
+            tela = 'principal'
+
+        self.ids.consulta_list.clear_widgets()
+        self.manager.current = tela
+
+    def cancelar(self):
+        self.ids.consulta_list.clear_widgets()
+        self.manager.current = 'principal'
 
 
 class CadastrarCurso(MDScreen):
@@ -746,6 +551,7 @@ class CadastrarTurma(MDScreen):
             toast(f"Erro ao salvar dados: {e}", duration=5)
             print(e)
 
+
 class ConsultarTurma(MDScreen):
     pass
 
@@ -782,7 +588,7 @@ class DibTopApp(MDApp):
         self.theme_cls.primary_palette = "Green"
 
         sm = MainScreenManager(transition=NoTransition())
-        # sm.current = 'login'
+        #   sm.current = 'login'
 
         self.navigation = NavigationManager(sm)  # Passando a instância de MainScreenManager para NavigationManager
         return sm

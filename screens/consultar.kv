@@ -1,4 +1,4 @@
-<ConsultarProfessor>:
+<Consultar>
     BoxLayout:
         orientation:'vertical'
         padding: '20dp'
@@ -24,17 +24,25 @@
             MDFillRoundFlatButton:
                 text: "Cancelar"
                 pos_hint: {'center_x': 0.5, 'center_y': 0.8}
-                on_release: app.navigation.return_to_principal()
+                on_release: root.cancelar()
+
+            MDFillRoundFlatButton:
+                id: btnnovo
+                text: "Novo"
+                pos_hint: {'center_x': 0.5, 'center_y': 0.8}
+                on_release: root.novo()
+
         BoxLayout:
             ScrollView:
                 MDList:
-                    id: prof_list
+                    id: consulta_list
 
 
-<ProfListItem>:
-    id: pro
-    text: root.nome
-    secondary_text: root.cpf
+
+<ListaItem>:
+    id: id_item
+    text: root.info1
+    secondary_text: root.info2
     IconLeftWidget:
         icon: 'account-circle'
 
@@ -47,3 +55,4 @@
         icon: "images/delete.png"
         pos_hint: {"center_x": .90, "center_y": .5}
         on_release: root.deletar()
+
