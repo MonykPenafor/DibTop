@@ -7,7 +7,7 @@ from kivymd.app import MDApp
 from kivymd.toast import toast
 from datetime import datetime
 from kivymd.uix.list import TwoLineAvatarIconListItem, OneLineListItem
-from funcoes import conectar, conf_data, validar_login, principal, deletar, salvar, editar
+from funcoes import conectar, validar_login, principal, deletar, salvar, editar
 
 
 # ---------------------   CLASES   ----------------------------
@@ -113,6 +113,9 @@ class CrudScreen(MDScreen):
 
 class Consultar(MDScreen):
     tabela = StringProperty('')
+
+    def on_pre_enter(self):
+        self.ids.consulta_list.clear_widgets()
 
     def pesquisar(self, texto):
         try:
