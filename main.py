@@ -1,14 +1,13 @@
 from kivy.lang import Builder
 from kivy.properties import StringProperty
 from kivy.uix.screenmanager import ScreenManager, NoTransition
-from kivy.uix.spinner import Spinner
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
 from kivymd.app import MDApp
 from kivymd.toast import toast
 from datetime import datetime
 from kivymd.uix.list import TwoLineAvatarIconListItem, OneLineListItem
-from funcoes import conectar, conf_data, validar_login, principal, pegar_id, deletar
+from funcoes import conectar, conf_data, validar_login, principal, deletar, salvar
 
 
 # ---------------------   CLASES   ----------------------------
@@ -34,10 +33,11 @@ class ListaItem(TwoLineAvatarIconListItem):
         deletar(self, self.id_item, self.tabela)
 
     def tela_editar(self, tabela):
+        tela = 'cad_' + str(tabela)
 
         if tabela == 'aluno':
 
-            self.screen_manager.current = 'cad_aluno'
+            self.screen_manager.current = tela
             tela_atual = self.screen_manager.current_screen
 
             try:
@@ -51,15 +51,14 @@ class ListaItem(TwoLineAvatarIconListItem):
 
                 consulta = cur.fetchone()
 
-                nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil, \
-                    escolaridade = consulta
+                nome, cpf, dt_nasc, end, email, telefone, naturalidade, nome_mae, estado_civil, escolaridade = consulta
 
                 tela_atual.ids.idaluno.text = id_item
                 tela_atual.ids.idnome.text = nome
                 tela_atual.ids.idcpf.text = cpf
                 dt_nasc = conf_data(dt_nasc)
                 tela_atual.ids.iddtnasc.text = dt_nasc
-                tela_atual.ids.idend.text = endereco
+                tela_atual.ids.idend.text = end
                 tela_atual.ids.idemail.text = email
                 tela_atual.ids.idtel.text = telefone
                 tela_atual.ids.idnat.text = naturalidade
@@ -135,6 +134,69 @@ class ListaItem(TwoLineAvatarIconListItem):
                 toast(f"Error: {e}", duration=5)
                 print(e)
 
+        if tabela == 'sala':
+
+            self.screen_manager.current = 'cad_sala'
+            tela_atual = self.screen_manager.current_screen
+
+            try:
+                conn = conectar()
+                cur = conn.cursor()
+
+                id_item = self.id_item
+
+                cur.execute('''SELECT descricao, numero, capacidade FROM sala WHERE id_sala = %s''', (id_item,))
+
+                consulta = cur.fetchone()
+
+                descricao, numero, capacidade = consulta
+
+                tela_atual.ids.idsala.text = id_item
+                tela_atual.ids.descricao.text = descricao
+                tela_atual.ids.numero.text = str(numero)
+                tela_atual.ids.capac.text = str(capacidade)
+
+                conn.commit()
+                conn.close()
+
+            except Exception as e:
+                toast(f"Error: {e}", duration=5)
+                print(e)
+
+        if tabela == 'curso':
+
+            self.screen_manager.current = 'cad_curso'
+            tela_atual = self.screen_manager.current_screen
+
+            try:
+                conn = conectar()
+                cur = conn.cursor()
+
+                id_item = self.id_item
+
+                cur.execute('''SELECT descricao, ch, num_modulos, vlr_total, num_duplicatas
+                                FROM curso WHERE id_curso = %s''', (id_item,))
+
+                consulta = cur.fetchone()
+
+                descricao, ch, numod, valor, dupli = consulta
+
+                tela_atual.ids.idcurso.text = id_item
+                tela_atual.ids.desc.text = descricao
+                tela_atual.ids.ch.text = str(ch)
+                tela_atual.ids.numod.text = str(numod)
+                tela_atual.ids.valor.text = str(valor)
+                tela_atual.ids.dupli.text = str(dupli)
+
+                conn.commit()
+                conn.close()
+
+            except Exception as e:
+                toast(f"Error: {e}", duration=5)
+                print(e)
+
+        self.screen_manager.get_screen(tela).tabela = self.tabela
+
 
 class CursoListaItem(OneLineListItem):
     info = StringProperty('')
@@ -145,10 +207,6 @@ class CursoListaItem(OneLineListItem):
         self.btnbuscar = btnbuscar
         self.id_citem = id_citem
         self.info = info
-
-
-class CustomSpinner(Spinner):
-    pass
 
 
 # ---------------------  CLASES MDSCREEN --------------------
@@ -190,10 +248,12 @@ class CrudScreen(MDScreen):
 
         if btn_name == 'funcionario':
             if self.logado == 'monykpp':
+                self.manager.get_screen(tela).tabela = btn_name
                 self.manager.current = tela
             else:
                 toast('Você não tem acesso ao cadastro de funcionarios')
         else:
+            self.manager.get_screen(tela).tabela = btn_name
             self.manager.current = tela
 
     def consultar(self, btn_name=None):
@@ -284,155 +344,47 @@ class Consultar(MDScreen):
 
 # ---------------------  CLASES MDSCREEN - TELAS DE CADASTRO --------------------
 class CadastrarAluno(MDScreen):
+    tabela = StringProperty('')
+
     def principal(self):
         principal(self)
 
     def salvar_dados(self):
-
-        try:
-            idaluno = self.ids.idaluno.text
-            nome = self.ids.idnome.text
-            cpf = self.ids.idcpf.text
-            dt_nasc = self.ids.iddtnasc.text
-            endereco = self.ids.idend.text
-            email = self.ids.idemail.text
-            telefone = self.ids.idtel.text
-            naturalidade = self.ids.idnat.text
-            nome_mae = self.ids.idnomemae.text
-            estado_civil = self.ids.idestcivil.text
-            escolaridade = self.ids.idesc.text
-
-            dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
-
-            conn = conectar()
-            cur = conn.cursor()
-
-            if idaluno == '-':
-                cur.execute("""INSERT into Aluno (nome,cpf,dt_nasc,endereco,email,telefone,naturalidade,nome_mae,
-                                estado_civil,escolaridade) Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                            (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil,
-                             escolaridade))
-            else:
-                cur.execute("""UPDATE Aluno SET nome = %s,cpf = %s,dt_nasc = %s,endereco = %s,email = %s,telefone = %s,
-                            naturalidade = %s,nome_mae = %s,estado_civil = %s,escolaridade = %s WHERE id_aluno = %s""",
-                            (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, estado_civil,
-                             escolaridade, idaluno))
-
-            conn.commit()  # Confirma a transação
-            toast("Salvo com sucesso!", duration=2)
-
-            principal(self)
-
-        except Exception as e:
-            toast(f"Erro ao salvar dados: {e}", duration=5)
-            print(e)
+        salvar(self, self.tabela)
 
 
 class CadastrarProfessor(MDScreen):
+    tabela = StringProperty('')
+
     def principal(self):
         principal(self)
 
     def salvar_dados(self):
-        try:
-            idprof = self.ids.idprof.text
-            nome = self.ids.nome.text
-            cpf = self.ids.cpf.text
-            area = self.ids.ae.text
-            endereco = self.ids.end.text
-            email = self.ids.email.text
-            telefone = self.ids.tel.text
-
-            conn = conectar()
-            cur = conn.cursor()
-
-            if idprof == '-':
-                cur.execute("""INSERT into Professor (nome, cpf, area_ensino, endereco, email, telefone)
-                Values (%s, %s, %s, %s, %s, %s) """, (nome, cpf, area, endereco, email, telefone))
-
-            else:
-                cur.execute("""UPDATE Professor SET nome = %s,cpf = %s,area_ensino = %s,endereco = %s,email = %s,
-                telefone = %s WHERE id_professor = %s""", (nome, cpf, area, endereco, email, telefone, idprof))
-
-            conn.commit()  # Confirma a transação
-            toast("Salvo com sucesso!", duration=2)
-
-            principal(self)
-
-        except Exception as e:
-            toast(f"Erro ao salvar dados: {e}", duration=5)
-            print(e)
+        salvar(self, self.tabela)
 
 
 class CadastrarFuncionario(MDScreen):
+    tabela = StringProperty('')
+
     def principal(self):
         principal(self)
 
     def salvar_dados(self):
-
-        try:
-            idfunc = self.ids.idfunc.text
-            nome = self.ids.nome.text
-            login = self.ids.login.text
-            senha = self.ids.senha.text
-            senha2 = self.ids.senha2.text
-
-            if senha == senha2:
-
-                conn = conectar()
-                cur = conn.cursor()
-
-                if idfunc == '-':
-                    cur.execute("""INSERT into Funcionario (nome, login, senha)Values (%s, %s, %s)""",
-                                (nome, login, senha))
-                else:
-                    cur.execute("""UPDATE Funcionario SET nome = %s,login = %s,senha = %s
-                                WHERE id_funcionario = %s""", (nome, login, senha, idfunc))
-
-                conn.commit()
-
-                toast("Salvo com sucesso!", duration=2)
-                self.principal()
-
-            else:
-                toast('Senhas não coincidem', duration=4)
-
-        except Exception as e:
-            toast(f"Erro ao salvar dados: {e}", duration=5)
-            print(e)
+        salvar(self, self.tabela)
 
 
 class CadastrarSala(MDScreen):
+    tabela = StringProperty('')
 
     def principal(self):
         principal(self)
 
     def salvar_dados(self):
-        try:
-            idsala = self.ids.sala.text
-            numero = self.ids.numero.text
-            descricao = self.ids.descricao.text
-            capacidade = self.ids.capac.text
-
-            conn = conectar()
-            cur = conn.cursor()
-
-            if idsala == '-':
-                cur.execute("""INSERT into Sala (descricao, numero, capacidade) 
-                                Values (%s, %s, %s)""", (descricao, numero, capacidade))
-            else:
-                cur.execute("""UPDATE Sala SET descricao = %s,numero = %s,capacidade = %s
-                            WHERE id_sala = %s""", (descricao, numero, capacidade, idsala))
-
-            conn.commit()  # Confirma a transação
-
-            toast("Salvo com sucesso!", duration=2)
-            self.principal()
-
-        except Exception as e:
-            toast(f"Erro ao salvar dados: {e}", duration=2)
+        salvar(self, self.tabela)
 
 
 class CadastrarCurso(MDScreen):
+    tabela = StringProperty('')
 
     def principal(self):
         principal(self)
@@ -453,33 +405,10 @@ class CadastrarCurso(MDScreen):
         return op
 
     def salvar_dados(self):
-        try:
+        salvar(self, self.tabela)
 
-            idsala = pegar_id(self.ids.sala.text)
-            idcurso = self.ids.idcurso.text
-            ch = self.ids.ch.text
-            descricao = self.ids.desc.text
-            numod = self.ids.numod.text
-            valor = self.ids.valor.text
-            dupli = self.ids.dupli.text
 
-            conn = conectar()
-            cur = conn.cursor()
 
-            if idcurso == '-':
-                cur.execute("""INSERT into Curso (id_sala, descricao, CH, num_modulos, VLR_total, num_duplicatas) 
-                Values (%s, %s, %s, %s, %s, %s)""", (idsala, descricao, ch, numod, valor, dupli))
-            else:
-                cur.execute("""UPDATE Curso SET id_sala = %s, descricao = %s, CH = %s, num_modulos = %s, VLR_total = %s,
-                 num_duplicatas = %s WHERE id_curso = %s""", (idsala, descricao, ch, numod, valor, dupli, idcurso))
-
-            conn.commit()  # Confirma a transação
-
-            toast("Salvo com sucesso!", duration=2)
-            self.principal()
-
-        except Exception as e:
-            toast(f"Erro ao salvar dados: {e}", duration=2)
 
 
 class CadastrarTurma(MDScreen):
@@ -578,7 +507,7 @@ class DibTopApp(MDApp):
         self.theme_cls.primary_palette = "Green"
 
         sm = MainScreenManager(transition=NoTransition())
-        #   sm.current = 'login'
+        # sm.current = 'login'
 
         return sm
 
