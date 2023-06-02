@@ -287,3 +287,82 @@ def salvar(self, tabela):
     else:
         print('tabela ainda nao implementada')
 
+
+
+
+
+def consulta_banco(self, tabela, query, id_item, *args):
+
+    tela = 'cad_' + str(tabela)
+    self.screen_manager.current = tela
+    tela_atual = self.screen_manager.current_screen
+
+    conn = conectar()
+    cur = conn.cursor()
+
+    try:
+        cur.execute(query, (id_item,))
+
+        consulta = cur.fetchone()
+
+        if tabela == 'aluno':
+            nome, cpf, dt_nasc, end, email, telefone, naturalidade, nome_mae, estado_civil, escolaridade = consulta
+
+            tela_atual.ids.idaluno.text = id_item
+            tela_atual.ids.idnome.text = nome
+            tela_atual.ids.idcpf.text = cpf
+            dt_nasc = conf_data(dt_nasc)
+            tela_atual.ids.iddtnasc.text = dt_nasc
+            tela_atual.ids.idend.text = end
+            tela_atual.ids.idemail.text = email
+            tela_atual.ids.idtel.text = telefone
+            tela_atual.ids.idnat.text = naturalidade
+            tela_atual.ids.idnomemae.text = nome_mae
+            tela_atual.ids.idestcivil.text = estado_civil
+            tela_atual.ids.idesc.text = escolaridade
+
+        elif tabela == 'professor':
+            nome, cpf, area_ensino, endereco, email, telefone = consulta
+
+            tela_atual.ids.idprof.text = id_item
+            tela_atual.ids.nome.text = nome
+            tela_atual.ids.cpf.text = cpf
+            tela_atual.ids.ae.text = cpf
+            tela_atual.ids.end.text = endereco
+            tela_atual.ids.email.text = email
+            tela_atual.ids.tel.text = telefone
+
+        elif tabela == 'funcionario':
+            nome, login = consulta
+
+            tela_atual.ids.idfunc.text = id_item
+            tela_atual.ids.nome.text = nome
+            tela_atual.ids.login.text = login
+
+        elif tabela == 'sala':
+            descricao, numero, capacidade = consulta
+
+            tela_atual.ids.idsala.text = id_item
+            tela_atual.ids.descricao.text = descricao
+            tela_atual.ids.numero.text = str(numero)
+            tela_atual.ids.capac.text = str(capacidade)
+
+        elif tabela == 'curso':
+            descricao, ch, numod, valor, dupli = consulta
+
+            tela_atual.ids.idcurso.text = id_item
+            tela_atual.ids.desc.text = descricao
+            tela_atual.ids.ch.text = str(ch)
+            tela_atual.ids.numod.text = str(numod)
+            tela_atual.ids.valor.text = str(valor)
+            tela_atual.ids.dupli.text = str(dupli)
+
+    except Exception as e:
+        toast(f"Error: {e}", duration=5)
+        print(e)
+
+    finally:
+        conn.commit()
+        conn.close()
+
+    self.screen_manager.get_screen(tela).tabela = self.tabela

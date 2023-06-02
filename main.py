@@ -7,7 +7,7 @@ from kivymd.app import MDApp
 from kivymd.toast import toast
 from datetime import datetime
 from kivymd.uix.list import TwoLineAvatarIconListItem, OneLineListItem
-from funcoes import conectar, conf_data, validar_login, principal, deletar, salvar
+from funcoes import conectar, conf_data, validar_login, principal, deletar, salvar, consulta_banco
 
 
 # ---------------------   CLASES   ----------------------------
@@ -33,169 +33,27 @@ class ListaItem(TwoLineAvatarIconListItem):
         deletar(self, self.id_item, self.tabela)
 
     def tela_editar(self, tabela):
-        tela = 'cad_' + str(tabela)
+
+        query = ""
+        id_item = self.id_item
 
         if tabela == 'aluno':
+            query = '''SELECT nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, 
+                        estado_civil, escolaridade FROM aluno WHERE aluno.id_aluno = %s'''
 
-            self.screen_manager.current = tela
-            tela_atual = self.screen_manager.current_screen
+        elif tabela == 'professor':
+            query = '''SELECT nome, cpf, area_ensino, endereco, email,telefone FROM professor WHERE id_professor = %s'''
 
-            try:
-                conn = conectar()
-                cur = conn.cursor()
+        elif tabela == 'funcionario':
+            query = '''SELECT nome, login FROM funcionario WHERE id_funcionario = %s'''
 
-                id_item = self.id_item
+        elif tabela == 'sala':
+            query = '''SELECT descricao, numero, capacidade FROM sala WHERE id_sala = %s'''
 
-                cur.execute('''SELECT nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, 
-                estado_civil, escolaridade FROM aluno WHERE aluno.id_aluno = %s''', (id_item,))
+        elif tabela == 'curso':
+            query = '''SELECT descricao, ch, num_modulos, vlr_total, num_duplicatas FROM curso WHERE id_curso = %s'''
 
-                consulta = cur.fetchone()
-
-                nome, cpf, dt_nasc, end, email, telefone, naturalidade, nome_mae, estado_civil, escolaridade = consulta
-
-                tela_atual.ids.idaluno.text = id_item
-                tela_atual.ids.idnome.text = nome
-                tela_atual.ids.idcpf.text = cpf
-                dt_nasc = conf_data(dt_nasc)
-                tela_atual.ids.iddtnasc.text = dt_nasc
-                tela_atual.ids.idend.text = end
-                tela_atual.ids.idemail.text = email
-                tela_atual.ids.idtel.text = telefone
-                tela_atual.ids.idnat.text = naturalidade
-                tela_atual.ids.idnomemae.text = nome_mae
-                tela_atual.ids.idestcivil.text = estado_civil
-                tela_atual.ids.idesc.text = escolaridade
-
-                conn.commit()
-                conn.close()
-
-            except Exception as e:
-                toast(f"Error: {e}", duration=5)
-                print(e)
-
-        if tabela == 'professor':
-
-            self.screen_manager.current = 'cad_professor'
-            tela_atual = self.screen_manager.current_screen
-
-            try:
-                conn = conectar()
-                cur = conn.cursor()
-
-                id_item = self.id_item
-
-                cur.execute('''SELECT nome, cpf, area_ensino, endereco, email, telefone FROM professor
-                               WHERE professor.id_professor = %s''', (id_item,))
-
-                consulta = cur.fetchone()
-
-                nome, cpf, area_ensino, endereco, email, telefone = consulta
-
-                tela_atual.ids.idprof.text = id_item
-                tela_atual.ids.nome.text = nome
-                tela_atual.ids.cpf.text = cpf
-                tela_atual.ids.ae.text = cpf
-                tela_atual.ids.end.text = endereco
-                tela_atual.ids.email.text = email
-                tela_atual.ids.tel.text = telefone
-
-                conn.commit()
-                conn.close()
-
-            except Exception as e:
-                toast(f"Error: {e}", duration=5)
-                print(e)
-
-        if tabela == 'funcionario':
-
-            self.screen_manager.current = 'cad_funcionario'
-            tela_atual = self.screen_manager.current_screen
-
-            try:
-                conn = conectar()
-                cur = conn.cursor()
-
-                id_item = self.id_item
-
-                cur.execute('''SELECT nome, login FROM funcionario WHERE id_funcionario = %s''', (id_item,))
-
-                consulta = cur.fetchone()
-
-                nome, login = consulta
-
-                tela_atual.ids.idfunc.text = id_item
-                tela_atual.ids.nome.text = nome
-                tela_atual.ids.login.text = login
-
-                conn.commit()
-                conn.close()
-
-            except Exception as e:
-                toast(f"Error: {e}", duration=5)
-                print(e)
-
-        if tabela == 'sala':
-
-            self.screen_manager.current = 'cad_sala'
-            tela_atual = self.screen_manager.current_screen
-
-            try:
-                conn = conectar()
-                cur = conn.cursor()
-
-                id_item = self.id_item
-
-                cur.execute('''SELECT descricao, numero, capacidade FROM sala WHERE id_sala = %s''', (id_item,))
-
-                consulta = cur.fetchone()
-
-                descricao, numero, capacidade = consulta
-
-                tela_atual.ids.idsala.text = id_item
-                tela_atual.ids.descricao.text = descricao
-                tela_atual.ids.numero.text = str(numero)
-                tela_atual.ids.capac.text = str(capacidade)
-
-                conn.commit()
-                conn.close()
-
-            except Exception as e:
-                toast(f"Error: {e}", duration=5)
-                print(e)
-
-        if tabela == 'curso':
-
-            self.screen_manager.current = 'cad_curso'
-            tela_atual = self.screen_manager.current_screen
-
-            try:
-                conn = conectar()
-                cur = conn.cursor()
-
-                id_item = self.id_item
-
-                cur.execute('''SELECT descricao, ch, num_modulos, vlr_total, num_duplicatas
-                                FROM curso WHERE id_curso = %s''', (id_item,))
-
-                consulta = cur.fetchone()
-
-                descricao, ch, numod, valor, dupli = consulta
-
-                tela_atual.ids.idcurso.text = id_item
-                tela_atual.ids.desc.text = descricao
-                tela_atual.ids.ch.text = str(ch)
-                tela_atual.ids.numod.text = str(numod)
-                tela_atual.ids.valor.text = str(valor)
-                tela_atual.ids.dupli.text = str(dupli)
-
-                conn.commit()
-                conn.close()
-
-            except Exception as e:
-                toast(f"Error: {e}", duration=5)
-                print(e)
-
-        self.screen_manager.get_screen(tela).tabela = self.tabela
+        consulta_banco(self, tabela, query, id_item)
 
 
 class CursoListaItem(OneLineListItem):
@@ -406,9 +264,6 @@ class CadastrarCurso(MDScreen):
 
     def salvar_dados(self):
         salvar(self, self.tabela)
-
-
-
 
 
 class CadastrarTurma(MDScreen):
