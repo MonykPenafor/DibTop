@@ -288,11 +288,7 @@ def salvar(self, tabela):
         print('tabela ainda nao implementada')
 
 
-
-
-
 def consulta_banco(self, tabela, query, id_item, *args):
-
     tela = 'cad_' + str(tabela)
     self.screen_manager.current = tela
     tela_atual = self.screen_manager.current_screen
@@ -366,3 +362,25 @@ def consulta_banco(self, tabela, query, id_item, *args):
         conn.close()
 
     self.screen_manager.get_screen(tela).tabela = self.tabela
+
+
+def editar(self, id_item, tabela):
+    query = ""
+
+    if tabela == 'aluno':
+        query = '''SELECT nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, 
+                    estado_civil, escolaridade FROM aluno WHERE aluno.id_aluno = %s'''
+
+    elif tabela == 'professor':
+        query = '''SELECT nome, cpf, area_ensino, endereco, email,telefone FROM professor WHERE id_professor = %s'''
+
+    elif tabela == 'funcionario':
+        query = '''SELECT nome, login FROM funcionario WHERE id_funcionario = %s'''
+
+    elif tabela == 'sala':
+        query = '''SELECT descricao, numero, capacidade FROM sala WHERE id_sala = %s'''
+
+    elif tabela == 'curso':
+        query = '''SELECT descricao, ch, num_modulos, vlr_total, num_duplicatas FROM curso WHERE id_curso = %s'''
+
+    consulta_banco(self, tabela, query, id_item)

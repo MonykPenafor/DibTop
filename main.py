@@ -7,7 +7,7 @@ from kivymd.app import MDApp
 from kivymd.toast import toast
 from datetime import datetime
 from kivymd.uix.list import TwoLineAvatarIconListItem, OneLineListItem
-from funcoes import conectar, conf_data, validar_login, principal, deletar, salvar, consulta_banco
+from funcoes import conectar, conf_data, validar_login, principal, deletar, salvar, editar
 
 
 # ---------------------   CLASES   ----------------------------
@@ -32,28 +32,8 @@ class ListaItem(TwoLineAvatarIconListItem):
     def deletar(self):
         deletar(self, self.id_item, self.tabela)
 
-    def tela_editar(self, tabela):
-
-        query = ""
-        id_item = self.id_item
-
-        if tabela == 'aluno':
-            query = '''SELECT nome, cpf, dt_nasc, endereco, email, telefone, naturalidade, nome_mae, 
-                        estado_civil, escolaridade FROM aluno WHERE aluno.id_aluno = %s'''
-
-        elif tabela == 'professor':
-            query = '''SELECT nome, cpf, area_ensino, endereco, email,telefone FROM professor WHERE id_professor = %s'''
-
-        elif tabela == 'funcionario':
-            query = '''SELECT nome, login FROM funcionario WHERE id_funcionario = %s'''
-
-        elif tabela == 'sala':
-            query = '''SELECT descricao, numero, capacidade FROM sala WHERE id_sala = %s'''
-
-        elif tabela == 'curso':
-            query = '''SELECT descricao, ch, num_modulos, vlr_total, num_duplicatas FROM curso WHERE id_curso = %s'''
-
-        consulta_banco(self, tabela, query, id_item)
+    def tela_editar(self):
+        editar(self, self.id_item, self.tabela)
 
 
 class CursoListaItem(OneLineListItem):
