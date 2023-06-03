@@ -1,5 +1,8 @@
 from kivy.lang import Builder
 from kivy.properties import StringProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, NoTransition
 from kivy.uix.spinner import SpinnerOption, Spinner
 from kivymd.uix.screen import MDScreen
@@ -7,7 +10,7 @@ from kivy.core.window import Window
 from kivymd.app import MDApp
 from kivymd.toast import toast
 from kivymd.uix.list import TwoLineAvatarIconListItem, OneLineListItem
-from funcoes import conectar, validar_login, principal, deletar, salvar, editar
+from funcoes import conectar, validar_login, principal, deletar, salvar, editar, opcoes
 
 
 # ---------------------   CLASES   ----------------------------
@@ -228,22 +231,12 @@ class CadastrarSala(MDScreen):
 class CadastrarCurso(MDScreen):
     tabela = StringProperty('')
 
+
     def principal(self):
         principal(self)
 
     def opcoes(self):
-        op = []
-
-        conn = conectar()
-        cur = conn.cursor()
-
-        cur.execute('SELECT * FROM sala')
-        consulta = cur.fetchall()
-
-        for row in consulta:
-            idc, desc, n, capac = row
-            frase = str(idc) + ' - ' + desc + ' (' + str(n) + '), capac: ' + str(capac)
-            op.append(frase)
+        op = opcoes()
         return op
 
     def salvar_dados(self):
@@ -251,6 +244,13 @@ class CadastrarCurso(MDScreen):
 
 
 class CadastrarTurma(MDScreen):
+
+    def abrir_popup(self):
+        popup_content = BoxLayout(orientation='vertical')
+        popup_content.add_widget(Label(text='Conteúdo do Popup'))
+
+        popup = Popup(title='Popup', content=popup_content, size_hint=(0.8, 0.8))
+        popup.open()
 
     def principal(self):
         principal(self)

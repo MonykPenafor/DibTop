@@ -139,6 +139,22 @@ def deletar(self, cod, tabela):
     popup.open()
 
 
+def opcoes():
+    op = []
+
+    conn = conectar()
+    cur = conn.cursor()
+
+    cur.execute('SELECT * FROM sala')
+    consulta = cur.fetchall()
+
+    for row in consulta:
+        idsala, desc, n, capac = row
+        frase = str(idsala) + ' - ' + desc + ' (' + str(n) + '), capac: ' + str(capac)
+        op.append(frase)
+    return op
+
+
 def salvar(self, tabela):
     conn = conectar()
     cur = conn.cursor()
@@ -290,6 +306,19 @@ def salvar(self, tabela):
         print('tabela ainda nao implementada')
 
 
+def sala_spinner_frase(id_id):
+    conn = conectar()
+    cur = conn.cursor()
+
+    cur.execute('''SELECT descricao, numero, capacidade FROM sala WHERE id_sala = %s''', (id_id,))
+    consulta = cur.fetchone()
+
+    descricao, numero, capacidade = consulta
+
+    frase = str(id_id) + ' - ' + descricao + ' (' + str(numero) + '), capac: ' + str(capacidade)
+    return frase
+
+
 def consulta_banco(self, tabela, query, id_item, *args):
     tela = 'cad_' + str(tabela)
     self.screen_manager.current = tela
@@ -297,6 +326,8 @@ def consulta_banco(self, tabela, query, id_item, *args):
 
     conn = conectar()
     cur = conn.cursor()
+
+    print(tela)
 
     try:
         cur.execute(query, (id_item,))
@@ -346,9 +377,15 @@ def consulta_banco(self, tabela, query, id_item, *args):
             tela_atual.ids.capac.text = str(capacidade)
 
         elif tabela == 'curso':
-            descricao, ch, numod, valor, dupli = consulta
+            print(consulta)
+
+            id_sala, descricao, ch, numod, valor, dupli = consulta
+            print(id_sala)
+            sala = sala_spinner_frase(id_sala)
+            print(sala)
 
             tela_atual.ids.idcurso.text = id_item
+            tela_atual.ids.sala.text = sala
             tela_atual.ids.desc.text = descricao
             tela_atual.ids.ch.text = str(ch)
             tela_atual.ids.numod.text = str(numod)
@@ -383,6 +420,7 @@ def editar(self, id_item, tabela):
         query = '''SELECT descricao, numero, capacidade FROM sala WHERE id_sala = %s'''
 
     elif tabela == 'curso':
-        query = '''SELECT descricao, ch, num_modulos, vlr_total, num_duplicatas FROM curso WHERE id_curso = %s'''
+        query = '''SELECT sala.id_sala, curso.descricao, curso.ch, curso.num_modulos, curso.vlr_total,
+        curso.num_duplicatas FROM curso, sala WHERE sala.id_sala = curso.id_sala and id_curso = %s'''
 
     consulta_banco(self, tabela, query, id_item)
