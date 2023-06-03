@@ -1,11 +1,11 @@
 from kivy.lang import Builder
 from kivy.properties import StringProperty
 from kivy.uix.screenmanager import ScreenManager, NoTransition
+from kivy.uix.spinner import SpinnerOption, Spinner
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
 from kivymd.app import MDApp
 from kivymd.toast import toast
-from datetime import datetime
 from kivymd.uix.list import TwoLineAvatarIconListItem, OneLineListItem
 from funcoes import conectar, validar_login, principal, deletar, salvar, editar
 
@@ -36,15 +36,16 @@ class ListaItem(TwoLineAvatarIconListItem):
         editar(self, self.id_item, self.tabela)
 
 
-class CursoListaItem(OneLineListItem):
+class CursoListItem(OneLineListItem):
     info = StringProperty('')
 
-    def __init__(self, id_citem='', info='', btnbuscar=None, screen_manager=None, **kwargs):
-        super(CursoListaItem, self).__init__(**kwargs)
-        self.screen_manager = screen_manager
+    def __init__(self, id_item='', info='', info2='', btnbuscar=None, **kwargs):
+        super(CursoListItem, self).__init__(**kwargs)
         self.btnbuscar = btnbuscar
-        self.id_citem = id_citem
+        self.id_item = id_item
         self.info = info
+        self.info2 = info2
+        self.text = info
 
 
 # ---------------------  CLASES MDSCREEN --------------------
@@ -255,69 +256,28 @@ class CadastrarTurma(MDScreen):
         principal(self)
 
     def salvar_dados(self):
+        salvar(self, self.tabela)
 
-        try:
-            idaluno = self.ids.idaluno.text
-            nome = self.ids.idnome.text
-            cpf = self.ids.idcpf.text
-            dt_nasc = self.ids.iddtnasc.text
-            endereco = self.ids.idend.text
-            email = self.ids.idemail.text
-            telefone = self.ids.idtel.text
-            naturalidade = self.ids.idnat.text
-            nome_mae = self.ids.idnomemae.text
-            estado_civil = self.ids.idestcivil.text
-            escolaridade = self.ids.idesc.text
-
-            # Converte a string da data de nascimento para um objeto datetime
-            dt_nasc = datetime.strptime(dt_nasc, '%d/%m/%Y')
-
-            conn = conectar()
-            cur = conn.cursor()
-
-            if idaluno == '-':
-                cur.execute("""INSERT into Aluno 
-                 (nome,cpf,dt_nasc,endereco,email,telefone,naturalidade,nome_mae,estado_civil,escolaridade) 
-                 Values (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                 """, (nome, cpf, dt_nasc, endereco, email, telefone, naturalidade,
-                       nome_mae, estado_civil, escolaridade))
-            else:
-                cur.execute("""UPDATE Aluno 
-                             SET nome = %s,cpf = %s,dt_nasc = %s,endereco = %s,email = %s,telefone = %s,
-                             naturalidade = %s,nome_mae = %s,estado_civil = %s,escolaridade = %s
-                             WHERE id_aluno = %s""", (nome, cpf, dt_nasc, endereco, email, telefone,
-                                                      naturalidade, nome_mae, estado_civil, escolaridade, idaluno))
-
-            conn.commit()  # Confirma a transação
-            toast("Salvo com sucesso!", duration=2)
-
-            principal(self)
-
-        except Exception as e:
-            toast(f"Erro ao salvar dados: {e}", duration=5)
-            print(e)
-
-    def pesquisar(self, texto):
+    def pes_curso(self, texto):
         try:
             conn = conectar()
             cur = conn.cursor()
 
-            cur.execute('SELECT id_curso, descricao FROM curso WHERE descricao ILIKE %s ORDER BY 2',
+            cur.execute('SELECT id_curso, descricao, ch FROM curso WHERE descricao ILIKE %s ORDER BY 2',
                         ('%' + texto + '%',))
 
             self.ids.curso_list.clear_widgets()
 
             btncurso = self.ids.btncurso
             consulta = cur.fetchall()
-            print(consulta)
+
             for row in consulta:
-                id_it, info = row
-                print(info)
-                item = CursoListaItem(id_citem=str(id_it), info=str(info), screen_manager=self.manager,
-                                      btnbuscar=btncurso)
+                id_it, info, info2 = row
+
+                item = CursoListItem(id_item=str(id_it), info=str(info), info2=str(info2), btnbuscar=btncurso)
 
                 self.ids.curso_list.add_widget(item)
-                print('foi')
+
             conn.close()
 
         except Exception as e:

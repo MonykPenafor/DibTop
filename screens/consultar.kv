@@ -1,7 +1,8 @@
 <Consultar>
     BoxLayout:
-        orientation:'vertical'
+        orientation: 'vertical'
         padding: '20dp'
+
         BoxLayout:
             orientation: 'horizontal'
             spacing: 5
@@ -13,34 +14,43 @@
                 hint_text: "Pesquisar"
                 pos_hint: {'center_x': 0.5, 'center_y': 0.8}
                 size_hint_x: 0.75
-                max_text_length: 25
+                max_text_length: 50
 
             MDFillRoundFlatButton:
                 id: btnbuscar
                 text: "Buscar"
                 pos_hint: {'center_x': 0.5, 'center_y': 0.8}
+                md_bg_color: app.theme_cls.primary_color
+                text_color: [1, 1, 1, 1]  # Define a cor do texto como branco
                 on_release: root.pesquisar(idpes.text)
 
             MDFillRoundFlatButton:
                 text: "Cancelar"
                 pos_hint: {'center_x': 0.5, 'center_y': 0.8}
+                md_bg_color: app.theme_cls.error_color
+                text_color: [1, 1, 1, 1]  # Define a cor do texto como branco
                 on_release: root.cancelar()
 
-            MDFillRoundFlatButton:
+            MDIconButton:
                 id: btnnovo
-                text: "Novo"
+                icon: "images/add.png"
                 pos_hint: {'center_x': 0.5, 'center_y': 0.8}
+                user_font_size: "40sp"
                 on_release: root.novo()
 
         BoxLayout:
             ScrollView:
                 MDList:
                     id: consulta_list
-
-
-
 <ListaItem>:
     id: id_item
+    canvas.before:
+        Color:
+            rgba: 0.53, 0.81, 0.92, 1  # Cor cinza (valores RGB e opacidade)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
     text: root.info1
     secondary_text: root.info2
     IconLeftWidget:
@@ -55,4 +65,3 @@
         icon: "images/delete.png"
         pos_hint: {"center_x": .90, "center_y": .5}
         on_release: root.deletar()
-

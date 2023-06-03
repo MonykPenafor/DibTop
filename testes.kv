@@ -1,0 +1,27 @@
+<SearchLayout>:
+    BoxLayout:
+        id: search_box_container
+        orientation: 'vertical'
+        padding: '10dp'
+        spacing: 5
+        size_hint_y: None
+        height: self.minimum_height
+
+        SearchResults:
+
+<SearchResults@RecycleView>:
+    viewclass: 'Item'
+    SelectableRecycleBoxLayout:
+        default_size: None, dp(56)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: 'vertical'
+
+<Item>:
+    text: root.text
+    secondary_text: root.text2
+
+<SearchBox>:
+    multiline: False
+    size_hint_y: 0.1

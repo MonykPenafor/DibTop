@@ -115,10 +115,12 @@ def deletar(self, cod, tabela):
                 script = 'DELETE FROM sala WHERE id_sala = %s;'
             elif tabela == 'curso':
                 script = 'DELETE FROM curso WHERE id_curso = %s;'
-            elif tabela == 'curso':
+            elif tabela == 'turma':
+                script = 'DELETE FROM turma WHERE id_turma = %s;'
+            elif tabela == 'alunoturma':
                 script = 'DELETE FROM turma WHERE id_turma = %s;'
             else:
-                script = 'deu erro'
+                script = 'nenhuma tabela corresponde'
 
             cur.execute(script, (id_,))
             conn.commit()
