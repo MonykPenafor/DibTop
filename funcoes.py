@@ -9,6 +9,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.textfield import MDTextField
 
 
+# --------------------------------  CLASSES -------------------------------------
 class ConfirmationPopup(Popup):
     def __init__(self, callback, **kwargs):
         super(ConfirmationPopup, self).__init__(**kwargs)
@@ -45,6 +46,10 @@ class CustomSpinner(Spinner):
     pass
 
 
+# ---------------------------------------  FUNÇÕES  -----------------------------------------
+
+
+# CONECTAR COM O BANCO
 def conectar():
     conn = psycopg2.connect(
         host="localhost",
@@ -55,6 +60,7 @@ def conectar():
     return conn
 
 
+# VALIDAR LOGIN, DEVOLVE TRUE SE FOR VALIDO E FALSE SE FOR INVALIDO
 def validar_login(login, senha):
     try:
         conn = conectar()
@@ -70,6 +76,7 @@ def validar_login(login, senha):
         return False
 
 
+# CONFIGURAR DATA PARA TRAZER ELA CONFIGURADA DO BANCO DE DADOS (AO TRAZER TELA EDITAR)
 def conf_data(data):
     data = str(data)
     ano = data[0:4]
@@ -79,6 +86,7 @@ def conf_data(data):
     return data
 
 
+# LIMPAR OS CAMPOS DE TEXTO DAS TELAS DE CADASTRO
 def limpar_campos(self):
     for widget in self.ids.values():
         if isinstance(widget, MDLabel):
@@ -87,19 +95,23 @@ def limpar_campos(self):
             widget.text = ""
 
 
+# VOLTAR PARA A TELA PRINCIPAL DEPOIS DE EXECUTAR A FUNÇÃO LIMPAR_CAMPOS
 def principal(self):
     limpar_campos(self)
     self.manager.current = 'principal'
 
 
+# PEGAR O ID DA SALA ESCOLHIDA NO SPINNER
 def pegar_id(opcao):
     opcao = opcao.split('-')[0].strip()
     return opcao
 
 
+# DELETAR UM REGISTRO
 def deletar(self, cod, tabela):
     def confirmar_exclusao():
         try:
+            script = ''
             conn = conectar()
             cur = conn.cursor()
 
@@ -120,7 +132,8 @@ def deletar(self, cod, tabela):
             elif tabela == 'alunoturma':
                 script = 'DELETE FROM turma WHERE id_turma = %s;'
             else:
-                script = 'nenhuma tabela corresponde'
+                print('nenhuma ação para a seguinte tabela: ', tabela)
+                toast(f'nenhuma ação para a seguinte tabela:{tabela}', duration=5)
 
             cur.execute(script, (id_,))
             conn.commit()
@@ -128,17 +141,18 @@ def deletar(self, cod, tabela):
 
             toast("Registro excluído com sucesso!", duration=5)
 
-            btn = self.btnbuscar
+            btn = self.btnbuscar  # atualizar consulta
             btn.trigger_action()
 
         except Exception as e:
-            toast(f"Error: {e}", duration=5)
+            toast(f"Erro: {e}", duration=5)
             print(e)
 
-    popup = ConfirmationPopup(callback=confirmar_exclusao)
+    popup = ConfirmationPopup(callback=confirmar_exclusao)  # popup para confirma exclusão
     popup.open()
 
 
+# OPCOES DO SPINNER DAS SALAS NA TELA DE CAD_CURSO
 def opcoes():
     op = []
 
@@ -155,6 +169,7 @@ def opcoes():
     return op
 
 
+# FAZER O INSERT OU UPDATE NA TABELA QUE TRAZ COMO PARAMETRO
 def salvar(self, tabela):
     conn = conectar()
     cur = conn.cursor()
@@ -306,6 +321,9 @@ def salvar(self, tabela):
         print('tabela ainda nao implementada')
 
 
+# ----------------------------- FUNÇÕES DA TELA EDITAR ----------------------------------------
+
+# REFAZER A OPCAO DE SALA DO SPINNER DA TELA EDITAR DO CURSO DE ACORDO COM O ID DA SALA
 def sala_spinner_frase(id_id):
     conn = conectar()
     cur = conn.cursor()
@@ -319,6 +337,7 @@ def sala_spinner_frase(id_id):
     return frase
 
 
+# ATRIBUIR OS VALORES QUE RECEBEU DA CONSULTA REALIZADA NA TABELA AOS CAMPOS DE TEXTO DA TELA DE CADASTRO ESPECIFICA
 def consulta_banco(self, tabela, query, id_item, *args):
     tela = 'cad_' + str(tabela)
     self.screen_manager.current = tela
@@ -340,8 +359,7 @@ def consulta_banco(self, tabela, query, id_item, *args):
             tela_atual.ids.idaluno.text = id_item
             tela_atual.ids.idnome.text = nome
             tela_atual.ids.idcpf.text = cpf
-            dt_nasc = conf_data(dt_nasc)
-            tela_atual.ids.iddtnasc.text = dt_nasc
+            tela_atual.ids.iddtnasc.text = conf_data(dt_nasc)
             tela_atual.ids.idend.text = end
             tela_atual.ids.idemail.text = email
             tela_atual.ids.idtel.text = telefone
@@ -380,12 +398,9 @@ def consulta_banco(self, tabela, query, id_item, *args):
             print(consulta)
 
             id_sala, descricao, ch, numod, valor, dupli = consulta
-            print(id_sala)
-            sala = sala_spinner_frase(id_sala)
-            print(sala)
 
             tela_atual.ids.idcurso.text = id_item
-            tela_atual.ids.sala.text = sala
+            tela_atual.ids.sala.text = sala_spinner_frase(id_sala)
             tela_atual.ids.desc.text = descricao
             tela_atual.ids.ch.text = str(ch)
             tela_atual.ids.numod.text = str(numod)
@@ -424,3 +439,4 @@ def editar(self, id_item, tabela):
         curso.num_duplicatas FROM curso, sala WHERE sala.id_sala = curso.id_sala and id_curso = %s'''
 
     consulta_banco(self, tabela, query, id_item)
+# ---------------------------------------------------------------------------------------------

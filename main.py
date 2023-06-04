@@ -13,11 +13,12 @@ from kivymd.uix.list import TwoLineAvatarIconListItem, OneLineListItem
 from funcoes import conectar, validar_login, principal, deletar, salvar, editar, opcoes
 
 
-# ---------------------   CLASES   ----------------------------
-
+# ---------------------   SCREEN MANAGER CLASS  ----------------------------
 class MainScreenManager(ScreenManager):
     pass
 
+
+# ---------------------   ITENS DE LISTAS   ----------------------------
 
 class ListaItem(TwoLineAvatarIconListItem):
     info1 = StringProperty('')
@@ -51,27 +52,21 @@ class CursoListItem(OneLineListItem):
         self.text = info
 
 
-# ---------------------  CLASES MDSCREEN --------------------
-
-
-class MainScreen(MDScreen):
-    logado = StringProperty('')
-
-    def crud(self, nome):
-        self.manager.get_screen('crud').btn_name = nome
-        self.manager.current = 'crud'
-
+# ---------------------  TELAS GERAIS --------------------
 
 class LoginScreen(MDScreen):
     def get_data(self):
         login = self.ids.idlogin.text
         senha = self.ids.idsenha.text
+
         if validar_login(login, senha):
+
             toast("Login e senha válidos", duration=2)
-            self.manager.get_screen('principal').logado = login
+
+            self.manager.get_screen('principal').logado = login  # enviando o valor de 'logado' para outras telas
             self.manager.get_screen('crud').logado = login
 
-            self.manager.current = 'principal'
+            self.manager.current = 'principal'  # ir para tela principal
 
         else:
             toast("Login ou senha inválidos", duration=5)
@@ -80,20 +75,32 @@ class LoginScreen(MDScreen):
         toast('Informe o administrador e crie um novo login', duration=7)
 
 
-class CrudScreen(MDScreen):
-    btn_name = StringProperty('')
-    logado = StringProperty('')
+class MainScreen(MDScreen):
+    logado = StringProperty('')     # recebeu da tela de login
 
+    def crud(self, nome):
+        self.manager.get_screen('crud').btn_name = nome  # enviando o nome do botão clicado para a tela de crud
+        self.manager.current = 'crud'
+
+
+class CrudScreen(MDScreen):
+    btn_name = StringProperty('')  # recebeu da tela principal
+    logado = StringProperty('')     # recebeu da tela de login
+
+    # restringe o cad/consulta de funci ao admin, muda para a tela especifica de acordo com o btn_name
     def cadastrar(self, btn_name=None):
         btn_name = btn_name or self.btn_name
         tela = 'cad_' + btn_name
 
         if btn_name == 'funcionario':
             if self.logado == 'monykpp':
+
                 self.manager.get_screen(tela).tabela = btn_name
                 self.manager.current = tela
+
             else:
                 toast('Você não tem acesso ao cadastro de funcionarios')
+
         else:
             self.manager.get_screen(tela).tabela = btn_name
             self.manager.current = tela
@@ -111,14 +118,15 @@ class CrudScreen(MDScreen):
             self.manager.get_screen('consultar').tabela = btn_name
             self.manager.current = 'consultar'
 
+    # voltar p tela principal
     def principal(self):
         principal(self)
 
 
 class Consultar(MDScreen):
-    tabela = StringProperty('')
+    tabela = StringProperty('')     # recebeu da tela 'crud'
 
-    def on_pre_enter(self):
+    def on_pre_enter(self):         # limpar a lista de consulta
         self.ids.consulta_list.clear_widgets()
 
     def pesquisar(self, texto):
@@ -176,6 +184,8 @@ class Consultar(MDScreen):
             tela = 'cad_funcionario'
         elif self.tabela == 'sala':
             tela = 'cad_sala'
+        elif self.tabela == 'curso':
+            tela = 'cad_curso'
         else:
             tela = 'principal'
 
@@ -187,7 +197,7 @@ class Consultar(MDScreen):
         self.manager.current = 'principal'
 
 
-# ---------------------  CLASES MDSCREEN - TELAS DE CADASTRO --------------------
+# ---------------------  CLASSES MDSCREEN - TELAS DE CADASTRO  --------------------
 class CadastrarAluno(MDScreen):
     tabela = StringProperty('')
 
@@ -231,7 +241,6 @@ class CadastrarSala(MDScreen):
 class CadastrarCurso(MDScreen):
     tabela = StringProperty('')
 
-
     def principal(self):
         principal(self)
 
@@ -242,6 +251,8 @@ class CadastrarCurso(MDScreen):
     def salvar_dados(self):
         salvar(self, self.tabela)
 
+
+# --------------------------  FALTA IMPLEMENTAR  -------------------------------
 
 class CadastrarTurma(MDScreen):
 
@@ -293,11 +304,12 @@ class CadastrarPagamento(MDScreen):
     pass
 
 
-# --------------------------- APP ---------------------------------
+# ---------------------------  APP  ---------------------------------
 
 class DibTopApp(MDApp):
 
     def build(self):
+        # carrega os arquivos kv com a estilização das telas
         Builder.load_file("screens.kv")
 
         Window.clearcolor = (1, 1, 1, 1)
