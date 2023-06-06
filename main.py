@@ -1,10 +1,8 @@
 from kivy.clock import Clock
 from kivy.lang import Builder
-from kivy.properties import StringProperty, ObjectProperty
-from kivy.uix.boxlayout import BoxLayout
+from kivy.properties import StringProperty
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, NoTransition
-from kivy.uix.textinput import TextInput
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
 from kivymd.app import MDApp
@@ -40,17 +38,16 @@ class ListaItem(TwoLineAvatarIconListItem):
         editar(self, self.id_item, self.tabela)
 
 
-# ------------------------------------------------------------- CHAVE ESTRANGEIRA -----------------------------
-
-
-class CursoListItem(OneLineListItem):
+class ChaveListItem(OneLineListItem):
     info = StringProperty('')
 
-    def __init__(self, id_item='', info='', sm=None, **kwargs):
-        super(CursoListItem, self).__init__(**kwargs)
+    def __init__(self, id_item='', info='', info2='', sm=None, tabela='', **kwargs):
+        super(ChaveListItem, self).__init__(**kwargs)
         self.manager = sm
         self.id_item = id_item
+        self.tabela = tabela
         self.info = info
+        self.info2 = info2
         self.frase = str(id_item) + ' - ' + info
 
         self.click_count = 0
@@ -69,75 +66,10 @@ class CursoListItem(OneLineListItem):
         self.click_count = 0
 
     def on_double_click(self):
-        self.manager.get_screen('cad_turma').ids.curso.text = self.frase
-        print("Item clicado duas vezes:", self.id_item, '-', self.info)
-
-
-class CursoPopup(Popup):
-    def __init__(self, manager=None, **kwargs):
-        super(CursoPopup, self).__init__(**kwargs)
-        self.manager = manager
-
-
-
-class Caixa(TextInput):
-    pass
-
-
-class ConsultarCurso(MDScreen):
-
-    def __init__(self, manager=None, **kwargs):
-        super(ConsultarCurso, self).__init__(**kwargs)
-        self.manager = manager
-
-    def on_text(self):
-        btn = self.ids.btnbuscar  # atualizar consulta
-        btn.trigger_action()
-
-    def pesquisar(self, texto):
-
-        script = '''SELECT id_curso, descricao from CURSO WHERE descricao ILIKE %s ORDER BY 2'''
-
-        try:
-            conn = conectar()
-            cur = conn.cursor()
-
-            cur.execute(script, ('%' + texto + '%',))
-
-            self.ids.curso_list.clear_widgets()
-
-            consulta = cur.fetchall()
-
-            for row in consulta:
-                id_item, info = row
-                print(self.manager)
-
-                item = CursoListItem(id_item=str(id_item), info=str(info), sm=self.manager)
-
-                self.ids.curso_list.add_widget(item)
-
-            conn.close()
-
-        except Exception as e:
-            toast(f"Erro: {e}", duration=5)
-            print(e)
-
-
-class CadastrarTurma(MDScreen):
-    frase = StringProperty('')
-
-    def abrir_popup(self):
-        m = self.manager
-
-        popup_content = ConsultarCurso(manager=m)  # Passar o gerenciador como argumento
-        popup = CursoPopup(content=popup_content, manager=m)
-        popup.open()
-
-    def principal(self):
-        principal(self)
-
-    def salvar_dados(self):
-        salvar(self, self.tabela)
+        if self.tabela == 'curso':
+            self.manager.get_screen('cad_turma').ids.curso.text = self.frase
+        if self.tabela == 'prof':
+            self.manager.get_screen('cad_turma').ids.prof.text = self.frase
 
 
 # ---------------------  TELAS GERAIS --------------------
@@ -233,8 +165,13 @@ class Consultar(MDScreen):
             script = 'SELECT id_sala, descricao, capacidade FROM sala WHERE descricao ILIKE %s ORDER BY 2'
         elif self.tabela == 'curso':
             script = 'SELECT id_curso, descricao, CH FROM curso WHERE descricao ILIKE %s ORDER BY 2'
+        elif self.tabela == 'turma':
+            script = '''SELECT id_turma, curso.descricao, professor.nome FROM turma, professor, curso WHERE 
+            turma.id_professor = professor.id_professor and turma.id_curso = curso.id_curso and curso.descricao ILIKE 
+            %s ORDER BY 2'''
+
         else:
-            script = 'deu erro'
+            script = 'deu erro consultar class'
 
         try:
             conn = conectar()
@@ -279,6 +216,9 @@ class Consultar(MDScreen):
             tela = 'cad_sala'
         elif self.tabela == 'curso':
             tela = 'cad_curso'
+        elif self.tabela == 'turma':
+            tela = 'cad_turma'
+
         else:
             tela = 'principal'
 
@@ -288,6 +228,56 @@ class Consultar(MDScreen):
     def cancelar(self):
         self.ids.consulta_list.clear_widgets()
         self.manager.current = 'principal'
+
+
+class ConsultarChaveEstrangeira(MDScreen):
+
+    def __init__(self, manager=None, tabela='', **kwargs):
+        super(ConsultarChaveEstrangeira, self).__init__(**kwargs)
+        self.tabela = tabela
+        self.manager = manager
+
+    def on_text(self):
+        btn = self.ids.btnbuscar  # atualizar consulta
+        btn.trigger_action()
+
+    def pesquisar(self, texto):
+
+        if self.tabela == 'curso':
+            script = '''SELECT id_curso, descricao from CURSO WHERE descricao ILIKE %s ORDER BY 2'''
+        elif self.tabela == 'prof':
+            script = '''SELECT id_professor, nome FROM professor WHERE nome ILIKE %s ORDER BY 2'''
+        else:
+            script = 'deu erro'
+
+        try:
+            conn = conectar()
+            cur = conn.cursor()
+
+            cur.execute(script, ('%' + texto + '%',))
+
+            self.ids.chaves_list.clear_widgets()
+
+            consulta = cur.fetchall()
+
+            for row in consulta:
+                id_item, info = row
+
+                item = ChaveListItem(id_item=str(id_item), info=str(info), sm=self.manager, tabela=self.tabela)
+
+                self.ids.chaves_list.add_widget(item)
+
+            conn.close()
+
+        except Exception as e:
+            toast(f"Erro: {e}", duration=5)
+            print(e)
+
+
+class CursoPopup(Popup):
+    def __init__(self, manager=None, **kwargs):
+        super(CursoPopup, self).__init__(**kwargs)
+        self.manager = manager
 
 
 # ---------------------  CLASSES MDSCREEN - TELAS DE CADASTRO  --------------------
@@ -347,12 +337,14 @@ class CadastrarCurso(MDScreen):
 
 # --------------------------  FALTA IMPLEMENTAR  -------------------------------
 
-'''class CadastrarTurma(MDScreen):
 
-    def abrir_popup(self):
+class CadastrarTurma(MDScreen):
+    tabela = StringProperty('')
 
-        popup_content = SearchLayout()
-        popup = CursoPopup(content=popup_content)
+    def abrir_popup(self, tabela):
+        popup_content = ConsultarChaveEstrangeira(manager=self.manager,
+                                                  tabela=tabela)  # Passar o gerenciador como argumento
+        popup = CursoPopup(content=popup_content, manager=self.manager)
         popup.open()
 
     def principal(self):
@@ -360,33 +352,6 @@ class CadastrarCurso(MDScreen):
 
     def salvar_dados(self):
         salvar(self, self.tabela)
-
-    def pes_curso(self, texto):
-        try:
-            conn = conectar()
-            cur = conn.cursor()
-
-            cur.execute('SELECT id_curso, descricao, ch FROM curso WHERE descricao ILIKE %s ORDER BY 2',
-                        ('%' + texto + '%',))
-
-            self.ids.curso_list.clear_widgets()
-
-            btncurso = self.ids.btncurso
-            consulta = cur.fetchall()
-
-            for row in consulta:
-                id_it, info, info2 = row
-
-                item = CursoListItem(id_item=str(id_it), info=str(info), info2=str(info2), btnbuscar=btncurso)
-
-                self.ids.curso_list.add_widget(item)
-
-            conn.close()
-
-        except Exception as e:
-            toast(f"Erro: {e}", duration=5)
-            print(e)
-'''
 
 
 class CadastrarAlunoTurma(MDScreen):

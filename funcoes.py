@@ -4,12 +4,14 @@ from kivy.core.window import Window
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.spinner import Spinner
+from kivy.uix.textinput import TextInput
 from kivymd.toast import toast
 from kivymd.uix.label import MDLabel
 from kivymd.uix.textfield import MDTextField
 
 
 # --------------------------------  CLASSES -------------------------------------
+
 class ConfirmationPopup(Popup):
     def __init__(self, callback, **kwargs):
         super(ConfirmationPopup, self).__init__(**kwargs)
@@ -43,6 +45,10 @@ class HoverButton(Button):
 
 
 class CustomSpinner(Spinner):
+    pass
+
+
+class Caixa(TextInput):
     pass
 
 
@@ -317,6 +323,34 @@ def salvar(self, tabela):
         except Exception as e:
             toast(f"Erro ao salvar dados: {e}", duration=2)
 
+    elif tabela == 'turma':
+        try:
+
+            idprof = pegar_id(self.ids.prof.text)
+            idcurso = pegar_id(self.ids.curso.text)
+
+            idturma = self.ids.idturma.text
+            turno = self.ids.turno.text
+            dias = self.ids.dias.text
+            inicio = datetime.strptime(self.ids.inicio.text, '%d/%m/%Y')
+            termino = datetime.strptime(self.ids.inicio.text, '%d/%m/%Y')
+
+            if idturma == '-':
+                cur.execute("""INSERT into turma (id_curso, id_professor, turno, dias_semana, DT_inicio, DT_termino) 
+                       Values (%s, %s, %s, %s, %s, %s)""", (idcurso, idprof, turno, dias, inicio, termino))
+            else:
+                cur.execute("""UPDATE turma SET id_curso = %s, id_professor = %s, turno = %s, dias_semana = %s, DT_inicio = %s,
+                        DT_termino = %s WHERE id_turma = %s""",
+                            (idcurso, idprof, turno, dias, inicio, termino, idturma))
+
+            conn.commit()  # Confirma a transação
+
+            toast("Salvo com sucesso!", duration=2)
+            self.principal()
+
+        except Exception as e:
+            toast(f"Erro ao salvar dados: {e}", duration=2)
+
     else:
         print('tabela ainda nao implementada')
 
@@ -334,6 +368,27 @@ def sala_spinner_frase(id_id):
     descricao, numero, capacidade = consulta
 
     frase = str(id_id) + ' - ' + descricao + ' (' + str(numero) + '), capac: ' + str(capacidade)
+    return frase
+
+
+def frase_chave_estrangeira(id_id, tabela):
+    conn = conectar()
+    cur = conn.cursor()
+
+    if tabela == 'curso':
+        cur.execute('''SELECT descricao FROM curso WHERE id_curso = %s''', (id_id,))
+        info = cur.fetchone()
+
+        frase = str(id_id) + ' - ' + info[0]
+
+    elif tabela == 'prof':
+        cur.execute('''SELECT nome, cpf FROM professor WHERE id_professor = %s''', (id_id,))
+        consulta = cur.fetchone()
+        info, info2 = consulta
+
+        frase = str(id_id) + ' - ' + info + '  |  cpf: ' + str(info2)
+    else:
+        frase = 'deu erro'
     return frase
 
 
@@ -407,6 +462,23 @@ def consulta_banco(self, tabela, query, id_item, *args):
             tela_atual.ids.valor.text = str(valor)
             tela_atual.ids.dupli.text = str(dupli)
 
+        elif tabela == 'turma':
+            print(consulta)
+
+            id_prof, id_curso, turno, dt_inicio, dt_termino, dias_semana = consulta
+
+            tela_atual.ids.prof.text = frase_chave_estrangeira(id_prof, 'prof')
+            tela_atual.ids.curso.text = frase_chave_estrangeira(id_curso, 'curso')
+
+            tela_atual.ids.idturma.text = id_item
+            tela_atual.ids.inicio.text = conf_data(dt_inicio)
+            tela_atual.ids.termino.text = conf_data(dt_termino)
+            tela_atual.ids.turno.text = turno
+            tela_atual.ids.dias.text = dias_semana
+
+            print(id_item, frase_chave_estrangeira(id_prof, 'prof'), frase_chave_estrangeira(id_curso, 'curso'), turno,
+                  conf_data(dt_inicio), conf_data(dt_termino), dias_semana)
+
     except Exception as e:
         toast(f"Error: {e}", duration=5)
         print(e)
@@ -437,6 +509,11 @@ def editar(self, id_item, tabela):
     elif tabela == 'curso':
         query = '''SELECT sala.id_sala, curso.descricao, curso.ch, curso.num_modulos, curso.vlr_total,
         curso.num_duplicatas FROM curso, sala WHERE sala.id_sala = curso.id_sala and id_curso = %s'''
+
+    elif tabela == 'turma':
+        query = '''SELECT professor.id_professor, curso.id_curso, turma.turno, turma.dt_inicio, turma.dt_termino, 
+        turma.dias_semana FROM turma, professor, curso WHERE turma.id_professor = professor.id_professor and 
+        turma.id_curso = curso.id_curso and id_turma = %s'''
 
     consulta_banco(self, tabela, query, id_item)
 # ---------------------------------------------------------------------------------------------

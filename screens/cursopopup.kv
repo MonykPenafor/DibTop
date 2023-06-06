@@ -8,7 +8,7 @@
     size_hint: 0.7, 0.7
 
 
-<ConsultarCurso>:
+<ConsultarChaveEstrangeira>:
     BoxLayout:
         orientation: 'vertical'
         padding: '20dp'
@@ -21,7 +21,6 @@
 
             Caixa:
                 id: idpes
-                hint_text: "Pesquisar"
                 pos_hint: {'center_x': 0.5, 'center_y': 0.8}
                 size_hint_x: 0.75
                 max_text_length: 50
@@ -35,18 +34,11 @@
                 text_color: [1, 1, 1, 1]  # Define a cor do texto como branco
                 on_release: root.pesquisar(idpes.text)
 
-            MDFillRoundFlatButton:
-                text: "Cancelar"
-                pos_hint: {'center_x': 0.5, 'center_y': 0.8}
-                md_bg_color: app.theme_cls.error_color
-                text_color: [1, 1, 1, 1]  # Define a cor do texto como branco
-                on_release: root.cancelar()
-
         BoxLayout:
             ScrollView:
                 MDList:
-                    id: curso_list
+                    id: chaves_list
 
-<CursoListItem>:
+<ChaveListItem>:
     id: id_item
     text: root.info
