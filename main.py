@@ -335,9 +335,6 @@ class CadastrarCurso(MDScreen):
         salvar(self, self.tabela)
 
 
-# --------------------------  FALTA IMPLEMENTAR  -------------------------------
-
-
 class CadastrarTurma(MDScreen):
     tabela = StringProperty('')
 
@@ -353,9 +350,23 @@ class CadastrarTurma(MDScreen):
     def salvar_dados(self):
         salvar(self, self.tabela)
 
+# --------------------------  FALTA IMPLEMENTAR  -------------------------------
+
 
 class CadastrarAlunoTurma(MDScreen):
-    pass
+    tabela = StringProperty('')
+
+    def abrir_popup(self, tabela):
+        popup_content = ConsultarChaveEstrangeira(manager=self.manager, tabela=tabela)
+        popup = CursoPopup(content=popup_content, manager=self.manager)
+        popup.open()
+
+    def principal(self):
+        principal(self)
+
+    def salvar_dados(self):
+        salvar(self, self.tabela)
+
 
 
 class CadastrarPagamento(MDScreen):
@@ -382,5 +393,4 @@ class DibTopApp(MDApp):
 
 # run the app
 if __name__ == "__main__":
-    items = ['Apple', 'Banana', 'Orange', 'Pineapple', 'Grape']
     DibTopApp().run()
