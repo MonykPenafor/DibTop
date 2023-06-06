@@ -1,10 +1,10 @@
+from kivy.clock import Clock
 from kivy.lang import Builder
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, ObjectProperty
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.screenmanager import ScreenManager, NoTransition
-from kivy.uix.spinner import SpinnerOption, Spinner
+from kivy.uix.textinput import TextInput
 from kivymd.uix.screen import MDScreen
 from kivy.core.window import Window
 from kivymd.app import MDApp
@@ -40,16 +40,104 @@ class ListaItem(TwoLineAvatarIconListItem):
         editar(self, self.id_item, self.tabela)
 
 
+# ------------------------------------------------------------- CHAVE ESTRANGEIRA -----------------------------
+
+
 class CursoListItem(OneLineListItem):
     info = StringProperty('')
 
-    def __init__(self, id_item='', info='', info2='', btnbuscar=None, **kwargs):
+    def __init__(self, id_item='', info='', sm=None, **kwargs):
         super(CursoListItem, self).__init__(**kwargs)
-        self.btnbuscar = btnbuscar
+        self.manager = sm
         self.id_item = id_item
         self.info = info
-        self.info2 = info2
-        self.text = info
+        self.frase = str(id_item) + ' - ' + info
+
+        self.click_count = 0
+        self.on_release = self.on_click
+
+    def on_click(self):
+        self.click_count += 1
+
+        if self.click_count == 1:
+            Clock.schedule_once(self.reset_click_count, 0.3)
+        elif self.click_count == 2:
+            self.on_double_click()
+            self.reset_click_count()
+
+    def reset_click_count(self, dt=None):
+        self.click_count = 0
+
+    def on_double_click(self):
+        self.manager.get_screen('cad_turma').ids.curso.text = self.frase
+        print("Item clicado duas vezes:", self.id_item, '-', self.info)
+
+
+class CursoPopup(Popup):
+    def __init__(self, manager=None, **kwargs):
+        super(CursoPopup, self).__init__(**kwargs)
+        self.manager = manager
+
+
+
+class Caixa(TextInput):
+    pass
+
+
+class ConsultarCurso(MDScreen):
+
+    def __init__(self, manager=None, **kwargs):
+        super(ConsultarCurso, self).__init__(**kwargs)
+        self.manager = manager
+
+    def on_text(self):
+        btn = self.ids.btnbuscar  # atualizar consulta
+        btn.trigger_action()
+
+    def pesquisar(self, texto):
+
+        script = '''SELECT id_curso, descricao from CURSO WHERE descricao ILIKE %s ORDER BY 2'''
+
+        try:
+            conn = conectar()
+            cur = conn.cursor()
+
+            cur.execute(script, ('%' + texto + '%',))
+
+            self.ids.curso_list.clear_widgets()
+
+            consulta = cur.fetchall()
+
+            for row in consulta:
+                id_item, info = row
+                print(self.manager)
+
+                item = CursoListItem(id_item=str(id_item), info=str(info), sm=self.manager)
+
+                self.ids.curso_list.add_widget(item)
+
+            conn.close()
+
+        except Exception as e:
+            toast(f"Erro: {e}", duration=5)
+            print(e)
+
+
+class CadastrarTurma(MDScreen):
+    frase = StringProperty('')
+
+    def abrir_popup(self):
+        m = self.manager
+
+        popup_content = ConsultarCurso(manager=m)  # Passar o gerenciador como argumento
+        popup = CursoPopup(content=popup_content, manager=m)
+        popup.open()
+
+    def principal(self):
+        principal(self)
+
+    def salvar_dados(self):
+        salvar(self, self.tabela)
 
 
 # ---------------------  TELAS GERAIS --------------------
@@ -76,7 +164,7 @@ class LoginScreen(MDScreen):
 
 
 class MainScreen(MDScreen):
-    logado = StringProperty('')     # recebeu da tela de login
+    logado = StringProperty('')  # recebeu da tela de login
 
     def crud(self, nome):
         self.manager.get_screen('crud').btn_name = nome  # enviando o nome do botão clicado para a tela de crud
@@ -85,7 +173,7 @@ class MainScreen(MDScreen):
 
 class CrudScreen(MDScreen):
     btn_name = StringProperty('')  # recebeu da tela principal
-    logado = StringProperty('')     # recebeu da tela de login
+    logado = StringProperty('')  # recebeu da tela de login
 
     # restringe o cad/consulta de funci ao admin, muda para a tela especifica de acordo com o btn_name
     def cadastrar(self, btn_name=None):
@@ -124,28 +212,33 @@ class CrudScreen(MDScreen):
 
 
 class Consultar(MDScreen):
-    tabela = StringProperty('')     # recebeu da tela 'crud'
+    tabela = StringProperty('')  # recebeu da tela 'crud'
 
-    def on_pre_enter(self):         # limpar a lista de consulta
+    def on_pre_enter(self):  # limpar a lista de consulta
         self.ids.consulta_list.clear_widgets()
 
+    def on_text(self):
+        btn = self.ids.btnbuscar  # atualizar consulta
+        btn.trigger_action()
+
     def pesquisar(self, texto):
+
+        if self.tabela == 'aluno':
+            script = 'SELECT id_aluno, nome, cpf FROM aluno WHERE nome ILIKE %s ORDER BY 2'
+        elif self.tabela == 'professor':
+            script = 'SELECT id_professor, nome, cpf FROM professor WHERE nome ILIKE %s ORDER BY 2'
+        elif self.tabela == 'funcionario':
+            script = 'SELECT id_funcionario, nome, login FROM funcionario WHERE nome ILIKE %s ORDER BY 2'
+        elif self.tabela == 'sala':
+            script = 'SELECT id_sala, descricao, capacidade FROM sala WHERE descricao ILIKE %s ORDER BY 2'
+        elif self.tabela == 'curso':
+            script = 'SELECT id_curso, descricao, CH FROM curso WHERE descricao ILIKE %s ORDER BY 2'
+        else:
+            script = 'deu erro'
+
         try:
             conn = conectar()
             cur = conn.cursor()
-
-            if self.tabela == 'aluno':
-                script = 'SELECT id_aluno, nome, cpf FROM aluno WHERE nome ILIKE %s ORDER BY 2'
-            elif self.tabela == 'professor':
-                script = 'SELECT id_professor, nome, cpf FROM professor WHERE nome ILIKE %s ORDER BY 2'
-            elif self.tabela == 'funcionario':
-                script = 'SELECT id_funcionario, nome, login FROM funcionario WHERE nome ILIKE %s ORDER BY 2'
-            elif self.tabela == 'sala':
-                script = 'SELECT id_sala, descricao, capacidade FROM sala WHERE descricao ILIKE %s ORDER BY 2'
-            elif self.tabela == 'curso':
-                script = 'SELECT id_curso, descricao, CH FROM curso WHERE descricao ILIKE %s ORDER BY 2'
-            else:
-                script = 'deu erro'
 
             cur.execute(script, ('%' + texto + '%',))
 
@@ -254,13 +347,12 @@ class CadastrarCurso(MDScreen):
 
 # --------------------------  FALTA IMPLEMENTAR  -------------------------------
 
-class CadastrarTurma(MDScreen):
+'''class CadastrarTurma(MDScreen):
 
     def abrir_popup(self):
-        popup_content = BoxLayout(orientation='vertical')
-        popup_content.add_widget(Label(text='Conteúdo do Popup'))
 
-        popup = Popup(title='Popup', content=popup_content, size_hint=(0.8, 0.8))
+        popup_content = SearchLayout()
+        popup = CursoPopup(content=popup_content)
         popup.open()
 
     def principal(self):
@@ -294,6 +386,7 @@ class CadastrarTurma(MDScreen):
         except Exception as e:
             toast(f"Erro: {e}", duration=5)
             print(e)
+'''
 
 
 class CadastrarAlunoTurma(MDScreen):
@@ -324,4 +417,5 @@ class DibTopApp(MDApp):
 
 # run the app
 if __name__ == "__main__":
+    items = ['Apple', 'Banana', 'Orange', 'Pineapple', 'Grape']
     DibTopApp().run()

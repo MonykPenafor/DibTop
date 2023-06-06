@@ -130,7 +130,7 @@ def deletar(self, cod, tabela):
             elif tabela == 'turma':
                 script = 'DELETE FROM turma WHERE id_turma = %s;'
             elif tabela == 'alunoturma':
-                script = 'DELETE FROM turma WHERE id_turma = %s;'
+                script = 'DELETE FROM turma WHERE id_aluno_turma = %s;'
             else:
                 print('nenhuma ação para a seguinte tabela: ', tabela)
                 toast(f'nenhuma ação para a seguinte tabela:{tabela}', duration=5)

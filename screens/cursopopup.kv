@@ -1,4 +1,14 @@
-<Consultar>
+<CursoPopup>:
+    id: id_curso
+    background: ''
+    background_color: 0.53, 0.81, 0.92, 1
+    orientation: 'vertical'
+    title: 'CURSO'
+    title_color: 'white'
+    size_hint: 0.7, 0.7
+
+
+<ConsultarCurso>:
     BoxLayout:
         orientation: 'vertical'
         padding: '20dp'
@@ -9,7 +19,7 @@
             size_hint_y: None
             height: dp(48)
 
-            MDTextField:
+            Caixa:
                 id: idpes
                 hint_text: "Pesquisar"
                 pos_hint: {'center_x': 0.5, 'center_y': 0.8}
@@ -32,37 +42,11 @@
                 text_color: [1, 1, 1, 1]  # Define a cor do texto como branco
                 on_release: root.cancelar()
 
-            MDIconButton:
-                id: btnnovo
-                icon: "images/add.png"
-                pos_hint: {'center_x': 0.5, 'center_y': 0.8}
-                user_font_size: "40sp"
-                on_release: root.novo()
-
         BoxLayout:
             ScrollView:
                 MDList:
-                    id: consulta_list
-<ListaItem>:
+                    id: curso_list
+
+<CursoListItem>:
     id: id_item
-    canvas.before:
-        Color:
-            rgba: 0.53, 0.81, 0.92, 1
-        Rectangle:
-            pos: self.pos
-            size: self.size
-
-    text: root.info1
-    secondary_text: root.info2
-    IconLeftWidget:
-        icon: 'account-circle'
-
-    MDIconButton:
-        icon: "images/edit.png"
-        pos_hint: {"center_x": .85, "center_y": .5}
-        on_release: root.tela_editar()
-
-    MDIconButton:
-        icon: "images/delete.png"
-        pos_hint: {"center_x": .90, "center_y": .5}
-        on_release: root.deletar()
+    text: root.info

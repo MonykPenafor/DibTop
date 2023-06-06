@@ -24,7 +24,6 @@
 
                 MDLabel:
                     id: idturma
-                    hint_text:"ID"
                     text: '-'
                     pos_hint: {'center_x':0.5,'center_y':0.8}
                     size_hint_x: 0.07
@@ -36,18 +35,23 @@
                     BoxLayout:
                         orientation: 'horizontal'
                         spacing: 1
-                        MDTextField:
-                            id: curso
-                            hint_text:"Curso"
+
+                        MDLabel:
+                            text: 'Curso:'
                             pos_hint: {'center_x':0.5,'center_y':0.8}
-                            size_hint_x: 0.8
+                            size_hint_x: 0.15
+
+                        MDLabel:
+                            id: curso
+                            text:"Pesquise o curso"
+                            pos_hint: {'center_x':0.5,'center_y':0.8}
+                            size_hint_x: 0.75
                             max_text_length: 11
-                            write_tab: False
 
                         MDFloatingActionButton:
                             icon: "images/lupa.png"
                             id: btncurso
-                            md_bg_color: 0.18,0.53,1,1
+                            md_bg_color: 'white'
                             theme_text_color: "Custom"
                             text_color: "black"
                             elevation: 0
@@ -72,7 +76,7 @@
                 MDFloatingActionButton:
                     icon: "images/lupa.png"
                     id: btnprof
-                    md_bg_color: 0.18,0.53,1,1
+                    md_bg_color: 'white'
                     theme_text_color: "Custom"
                     text_color: "black"
                     elevation: 0
@@ -172,7 +176,3 @@
             size_hint_x: 0.2
 
 
-
-<CursoListItem>:
-    id: id_item
-    text: root.info
