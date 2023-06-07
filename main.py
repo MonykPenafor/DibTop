@@ -174,9 +174,8 @@ class Consultar(MDScreen):
             script = '''SELECT id_turma, curso.descricao, professor.nome FROM turma, professor, curso WHERE 
             turma.id_professor = professor.id_professor and turma.id_curso = curso.id_curso and curso.descricao ILIKE 
             %s ORDER BY 2'''
-
         elif self.tabela == 'alunoturma':
-            script = '''SELECT professor.nome, aluno.nome, aluno_turma.matricula, curso.descricao FROM turma, aluno, 
+            script = '''SELECT aluno_turma.id_aluno_turma, professor.nome, aluno.nome, aluno_turma.matricula, curso.descricao FROM turma, aluno, 
             aluno_turma, professor, curso WHERE turma.id_turma = aluno_turma.id_turma and curso.id_curso = 
             turma.id_curso and aluno.id_aluno = aluno_turma.id_aluno and professor.id_professor = turma.id_professor 
             and aluno.nome ILIKE 'marta jovellar' ORDER BY 2'''
@@ -195,19 +194,32 @@ class Consultar(MDScreen):
             btnbuscar = self.ids.btnbuscar
             consulta = cur.fetchall()
 
-            for row in consulta:
-                id_it, info1, info2 = row
+            if self.tabela != 'alunoturma':
+                for row in consulta:
+                    id_it, info1, info2 = row
 
-                if self.tabela == 'sala':
-                    info2 = 'capacidade: ' + str(info2)
+                    if self.tabela == 'sala':
+                        info2 = 'capacidade: ' + str(info2)
 
-                if self.tabela == 'curso':
-                    info2 = 'Carga horária: ' + str(info2)
+                    if self.tabela == 'curso':
+                        info2 = 'Carga horária: ' + str(info2)
 
-                item = ListaItem(id_item=str(id_it), info1=str(info1), info2=str(info2), tabela=self.tabela,
-                                 screen_manager=self.manager, btnbuscar=btnbuscar)
+                    item = ListaItem(id_item=str(id_it), info1=str(info1), info2=str(info2), tabela=self.tabela,
+                                     screen_manager=self.manager, btnbuscar=btnbuscar)
 
-                self.ids.consulta_list.add_widget(item)
+                    self.ids.consulta_list.add_widget(item)
+            else:
+                for row in consulta:
+                    id_it, info1, info2, info3, info4 = row
+
+                    infoprincipal = info2 + ' - ' + str(info3)
+                    infosecundaria = info1 + ' - ' + info4
+
+                    item = ListaItem(id_item=str(id_it), info1=str(infoprincipal), info2=str(infosecundaria),
+                                     tabela=self.tabela,
+                                     screen_manager=self.manager, btnbuscar=btnbuscar)
+
+                    self.ids.consulta_list.add_widget(item)
 
             conn.close()
 
@@ -388,7 +400,7 @@ class CadastrarAlunoTurma(MDScreen):
         ano = date.today().strftime("%Y")
         aluno_id = pegar_id(self.ids.aluno.text)
         turma_id = pegar_id(self.ids.turma.text)
-        mat = str(ano)+str(aluno_id)+str(turma_id)
+        mat = str(ano) + str(aluno_id) + str(turma_id)
         self.ids.matricula.text = mat
 
 

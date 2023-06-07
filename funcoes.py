@@ -136,7 +136,7 @@ def deletar(self, cod, tabela):
             elif tabela == 'turma':
                 script = 'DELETE FROM turma WHERE id_turma = %s;'
             elif tabela == 'alunoturma':
-                script = 'DELETE FROM turma WHERE id_aluno_turma = %s;'
+                script = 'DELETE FROM aluno_turma WHERE id_aluno_turma = %s;'
             else:
                 print('nenhuma ação para a seguinte tabela: ', tabela)
                 toast(f'nenhuma ação para a seguinte tabela:{tabela}', duration=5)
@@ -367,7 +367,7 @@ def salvar(self, tabela):
                        Values (%s, %s, %s, %s, %s)""", (idturma, idaluno, matricula, ativo, certificado))
             else:
                 cur.execute("""UPDATE aluno_turma SET id_turma = %s, id_aluno = %s, matricula = %s, ativo = %s, 
-                certificado_entrege = %s WHERE id_aluno_turma = %s""",
+                certificado_entregue = %s WHERE id_aluno_turma = %s""",
                             (idturma, idaluno, matricula, ativo, certificado, idalunoturma))
 
             conn.commit()  # Confirma a transação
@@ -414,6 +414,23 @@ def frase_chave_estrangeira(id_id, tabela):
         info, info2 = consulta
 
         frase = str(id_id) + ' - ' + info + '  |  cpf: ' + str(info2)
+
+    elif tabela == 'aluno':
+        cur.execute('''SELECT nome, cpf FROM aluno WHERE id_aluno = %s''', (id_id,))
+        consulta = cur.fetchone()
+        info, info2 = consulta
+
+        frase = str(id_id) + ' - ' + info + '  |  cpf: ' + str(info2)
+
+    elif tabela == 'turma':
+        cur.execute('''SELECT curso.descricao, professor.nome FROM turma, professor, curso WHERE turma.id_professor = 
+        professor.id_professor and turma.id_curso = curso.id_curso and turma.id_turma = %s ''', (id_id,))
+
+        consulta = cur.fetchone()
+        info, info2 = consulta
+
+        frase = str(id_id) + ' - ' + info + '  |  prof.: ' + str(info2)
+
     else:
         frase = 'deu erro'
     return frase
@@ -503,8 +520,19 @@ def consulta_banco(self, tabela, query, id_item, *args):
             tela_atual.ids.turno.text = turno
             tela_atual.ids.dias.text = dias_semana
 
-            print(id_item, frase_chave_estrangeira(id_prof, 'prof'), frase_chave_estrangeira(id_curso, 'curso'), turno,
-                  conf_data(dt_inicio), conf_data(dt_termino), dias_semana)
+        elif tabela == 'alunoturma':
+            print(consulta)
+
+            id_aluno, id_turma, matri, ativo, certificado = consulta
+
+            tela_atual.ids.aluno.text = frase_chave_estrangeira(id_aluno, 'aluno')
+            tela_atual.ids.turma.text = frase_chave_estrangeira(id_turma, 'turma')
+
+            tela_atual.ids.idalunoturma.text = id_item
+
+            tela_atual.ids.matricula.text = str(matri)
+            tela_atual.ids.ativo.text = ativo
+            tela_atual.ids.certificado.text = certificado
 
     except Exception as e:
         toast(f"Error: {e}", duration=5)
@@ -538,9 +566,12 @@ def editar(self, id_item, tabela):
         curso.num_duplicatas FROM curso, sala WHERE sala.id_sala = curso.id_sala and id_curso = %s'''
 
     elif tabela == 'turma':
-        query = '''SELECT professor.id_professor, curso.id_curso, turma.turno, turma.dt_inicio, turma.dt_termino, 
-        turma.dias_semana FROM turma, professor, curso WHERE turma.id_professor = professor.id_professor and 
-        turma.id_curso = curso.id_curso and id_turma = %s'''
+        query = '''SELECT id_professor, id_curso, turno, dt_inicio, dt_termino, dias_semana 
+        FROM turma WHERE id_turma = %s'''
+
+    elif tabela == 'alunoturma':
+        query = '''SELECT id_aluno, id_turma, matricula, ativo, certificado_entregue FROM aluno_turma
+        WHERE id_aluno_turma = %s'''
 
     consulta_banco(self, tabela, query, id_item)
 # ---------------------------------------------------------------------------------------------
