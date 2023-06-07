@@ -114,10 +114,9 @@ def pegar_id(opcao):
 
 
 # DELETAR UM REGISTRO
-def deletar(self, cod, tabela):
+def deletar(self, cod, tabela, logado):
     def confirmar_exclusao():
         try:
-            script = ''
             conn = conectar()
             cur = conn.cursor()
 
@@ -137,8 +136,14 @@ def deletar(self, cod, tabela):
                 script = 'DELETE FROM turma WHERE id_turma = %s;'
             elif tabela == 'alunoturma':
                 script = 'DELETE FROM aluno_turma WHERE id_aluno_turma = %s;'
+            elif tabela == 'pagamento':
+                if logado == 'monykpp':
+                    script = 'DELETE FROM pagamento WHERE id_pagamento = %s;'
+                else:
+                    toast('Você não é autorizado a excluir um registro de pagamento', duration=4)
+                    script = ''
             else:
-                print('nenhuma ação para a seguinte tabela: ', tabela)
+                script = ''
                 toast(f'nenhuma ação para a seguinte tabela:{tabela}', duration=5)
 
             cur.execute(script, (id_,))
@@ -378,8 +383,40 @@ def salvar(self, tabela):
         except Exception as e:
             toast(f"Erro ao salvar dados: {e}", duration=2)
 
+    elif tabela == 'pagamento':
+
+        try:
+            idalunoturma = pegar_id(self.ids.alunoturma.text)
+            print('1')
+            id_pag = self.ids.idpag.text
+            print(2)
+            valor = self.ids.valor.text
+            data = self.ids.data.text
+            print(3)
+
+            f = self.ids.func.text
+            cur.execute('select id_funcionario from funcionario where login LIKE %s', (f,))
+            func = cur.fetchone()
+
+            if id_pag == '-':
+                cur.execute("""INSERT into pagamento (id_aluno_turma, id_funcionario, vlr_pagamento, dt_pagamento) 
+                          Values (%s, %s, %s, %s)""", (idalunoturma, func, valor, data))
+            else:
+                cur.execute("""UPDATE pagamento SET id_aluno_turma = %s, id_funcionario = %s, vlr_pagamento = %s, 
+                dt_pagamento = %s WHERE id_pagamento = %s""",
+                            (idalunoturma, func, valor, data, id_pag))
+
+            conn.commit()  # Confirma a transação
+
+            toast("Salvo com sucesso!", duration=2)
+            self.principal()
+
+        except Exception as e:
+            toast(f"Erro ao salvar dados: {e}", duration=2)
+
     else:
         print('tabela ainda nao implementada')
+        toast('tabela ainda nao implementada', duration=5)
 
 
 # ----------------------------- FUNÇÕES DA TELA EDITAR ----------------------------------------
@@ -431,6 +468,14 @@ def frase_chave_estrangeira(id_id, tabela):
 
         frase = str(id_id) + ' - ' + info + '  |  prof.: ' + str(info2)
 
+    elif tabela == 'aluno_turma':
+        cur.execute('''SELECT curso.descricao, professor.nome FROM turma, professor, curso WHERE turma.id_professor = 
+         professor.id_professor and turma.id_curso = curso.id_curso and turma.id_turma = %s ''', (id_id,))
+
+        consulta = cur.fetchone()
+        info, info2 = consulta
+
+        frase = str(id_id) + ' - ' + info + '  |  prof.: ' + str(info2)
     else:
         frase = 'deu erro'
     return frase
@@ -535,7 +580,7 @@ def consulta_banco(self, tabela, query, id_item, *args):
             tela_atual.ids.certificado.text = certificado
 
     except Exception as e:
-        toast(f"Error: {e}", duration=5)
+        toast(f"Não é permitido alterar um pagamento!", duration=5)
         print(e)
 
     finally:
@@ -572,6 +617,9 @@ def editar(self, id_item, tabela):
     elif tabela == 'alunoturma':
         query = '''SELECT id_aluno, id_turma, matricula, ativo, certificado_entregue FROM aluno_turma
         WHERE id_aluno_turma = %s'''
+
+    elif tabela == 'pagamento':
+        query = '-'
 
     consulta_banco(self, tabela, query, id_item)
 # ---------------------------------------------------------------------------------------------

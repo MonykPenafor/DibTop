@@ -23,20 +23,24 @@ class ListaItem(TwoLineAvatarIconListItem):
     info1 = StringProperty('')
     info2 = StringProperty('')
 
-    def __init__(self, id_item='', info1='', info2='', tabela='', btnbuscar=None, screen_manager=None, **kwargs):
+    def __init__(self, id_item='', info1='', info2='',tabela='',logado='',btnbuscar=None,screen_manager=None,**kwargs):
         super(ListaItem, self).__init__(**kwargs)
         self.screen_manager = screen_manager
         self.btnbuscar = btnbuscar
         self.id_item = id_item
+        self.logado = logado
         self.info1 = info1
         self.info2 = info2
         self.tabela = tabela
 
     def deletar(self):
-        deletar(self, self.id_item, self.tabela)
+        deletar(self, self.id_item, self.tabela, self.logado)
 
     def tela_editar(self):
-        editar(self, self.id_item, self.tabela)
+        if self.btnbuscar != 'pagamento':
+            editar(self, self.id_item, self.tabela)
+        else:
+            toast('Náo é permitido editar uma registro de pagamento')
 
 
 class ChaveListItem(OneLineListItem):
@@ -67,6 +71,7 @@ class ChaveListItem(OneLineListItem):
         self.click_count = 0
 
     def on_double_click(self):
+        print(self.tabela + 'tablea double click')
         if self.tabela == 'curso':
             self.manager.get_screen('cad_turma').ids.curso.text = self.frase
         if self.tabela == 'prof':
@@ -75,6 +80,8 @@ class ChaveListItem(OneLineListItem):
             self.manager.get_screen('cad_alunoturma').ids.aluno.text = self.frase
         if self.tabela == 'turma':
             self.manager.get_screen('cad_alunoturma').ids.turma.text = self.frase
+        if self.tabela == 'aluno_turma':
+            self.manager.get_screen('cad_pagamento').ids.alunoturma.text = self.frase
 
 
 # ---------------------  TELAS GERAIS --------------------
@@ -90,6 +97,8 @@ class LoginScreen(MDScreen):
 
             self.manager.get_screen('principal').logado = login  # enviando o valor de 'logado' para outras telas
             self.manager.get_screen('crud').logado = login
+            self.manager.get_screen('cad_pagamento').logado = login
+            self.manager.get_screen('consultar').logado = login
 
             self.manager.current = 'principal'  # ir para tela principal
 
@@ -124,7 +133,7 @@ class CrudScreen(MDScreen):
                 self.manager.current = tela
 
             else:
-                toast('Você não tem acesso ao cadastro de funcionarios')
+                toast('Você não tem acesso ao cadastro de funcionarios', duration=4)
 
         else:
             self.manager.get_screen(tela).tabela = btn_name
@@ -138,7 +147,7 @@ class CrudScreen(MDScreen):
                 self.manager.get_screen('consultar').tabela = btn_name
                 self.manager.current = 'consultar'
             else:
-                toast('Você não tem acesso ao cadastro de funcionarios')
+                toast('Você não tem acesso ao quadro de funcionarios', duration=4)
         else:
             self.manager.get_screen('consultar').tabela = btn_name
             self.manager.current = 'consultar'
@@ -150,6 +159,7 @@ class CrudScreen(MDScreen):
 
 class Consultar(MDScreen):
     tabela = StringProperty('')  # recebeu da tela 'crud'
+    logado = StringProperty('')
 
     def on_pre_enter(self):  # limpar a lista de consulta
         self.ids.consulta_list.clear_widgets()
@@ -175,13 +185,17 @@ class Consultar(MDScreen):
             turma.id_professor = professor.id_professor and turma.id_curso = curso.id_curso and curso.descricao ILIKE 
             %s ORDER BY 2'''
         elif self.tabela == 'alunoturma':
-            script = '''SELECT aluno_turma.id_aluno_turma, professor.nome, aluno.nome, aluno_turma.matricula, curso.descricao FROM turma, aluno, 
-            aluno_turma, professor, curso WHERE turma.id_turma = aluno_turma.id_turma and curso.id_curso = 
-            turma.id_curso and aluno.id_aluno = aluno_turma.id_aluno and professor.id_professor = turma.id_professor 
-            and aluno.nome ILIKE 'marta jovellar' ORDER BY 2'''
-
+            script = '''SELECT aluno_turma.id_aluno_turma, professor.nome, aluno.nome, aluno_turma.matricula, 
+            curso.descricao FROM turma, aluno, aluno_turma, professor, curso WHERE turma.id_turma = aluno_turma.id_turma 
+            and curso.id_curso = turma.id_curso and aluno.id_aluno = aluno_turma.id_aluno and professor.id_professor 
+            = turma.id_professor and aluno.nome ILIKE %s ORDER BY 2'''
+        elif self.tabela == 'pagamento':
+            script = '''SELECT pagamento.id_pagamento, aluno.nome, aluno_turma.matricula, pagamento.vlr_pagamento FROM 
+            aluno, aluno_turma, pagamento WHERE aluno_turma.id_aluno_turma = pagamento.id_aluno_turma and aluno.id_aluno 
+            = aluno_turma.id_aluno and aluno.nome ILIKE %s ORDER BY 2'''
         else:
-            script = 'deu erro consultar class'
+            script = 'tabela invalida'
+            print(script)
 
         try:
             conn = conectar()
@@ -194,7 +208,33 @@ class Consultar(MDScreen):
             btnbuscar = self.ids.btnbuscar
             consulta = cur.fetchall()
 
-            if self.tabela != 'alunoturma':
+            if self.tabela == 'alunoturma':
+
+                for row in consulta:
+                    id_it, info1, info2, info3, info4 = row
+
+                    infoprincipal = info2 + ' - ' + str(info3)
+                    infosecundaria = info1 + ' - ' + info4
+
+                    item = ListaItem(id_item=str(id_it), info1=str(infoprincipal), info2=str(infosecundaria),
+                                     tabela=self.tabela,
+                                     screen_manager=self.manager, btnbuscar=btnbuscar)
+
+                    self.ids.consulta_list.add_widget(item)
+
+            elif self.tabela == 'pagamento':
+
+                for row in consulta:
+                    id_it, info1, info2, info3 = row
+
+                    infoprincipal = info1 + ' - ' + str(info2)
+
+                    item = ListaItem(id_item=str(id_it), info1=str(infoprincipal), info2=str(info3), tabela=self.tabela,
+                                     screen_manager=self.manager, logado=self.logado, btnbuscar=btnbuscar)
+
+                    self.ids.consulta_list.add_widget(item)
+
+            else:
                 for row in consulta:
                     id_it, info1, info2 = row
 
@@ -205,18 +245,6 @@ class Consultar(MDScreen):
                         info2 = 'Carga horária: ' + str(info2)
 
                     item = ListaItem(id_item=str(id_it), info1=str(info1), info2=str(info2), tabela=self.tabela,
-                                     screen_manager=self.manager, btnbuscar=btnbuscar)
-
-                    self.ids.consulta_list.add_widget(item)
-            else:
-                for row in consulta:
-                    id_it, info1, info2, info3, info4 = row
-
-                    infoprincipal = info2 + ' - ' + str(info3)
-                    infosecundaria = info1 + ' - ' + info4
-
-                    item = ListaItem(id_item=str(id_it), info1=str(infoprincipal), info2=str(infosecundaria),
-                                     tabela=self.tabela,
                                      screen_manager=self.manager, btnbuscar=btnbuscar)
 
                     self.ids.consulta_list.add_widget(item)
@@ -234,16 +262,24 @@ class Consultar(MDScreen):
         elif self.tabela == 'professor':
             tela = 'cad_professor'
         elif self.tabela == 'funcionario':
-            tela = 'cad_funcionario'
+            if self.logado == 'monykpp':
+                tela = 'cad_funcionario'
+            else:
+                toast('Você não tem acesso ao cadastro de funcionarios', duration=4)
+                tela = 'consultar'
         elif self.tabela == 'sala':
             tela = 'cad_sala'
         elif self.tabela == 'curso':
             tela = 'cad_curso'
         elif self.tabela == 'turma':
             tela = 'cad_turma'
-
+        elif self.tabela == 'alunoturma':
+            tela = 'cad_aluno_turma'
+        elif self.tabela == 'pagamento':
+            tela = 'cad_pagamento'
         else:
             tela = 'principal'
+            toast('')
 
         self.ids.consulta_list.clear_widgets()
         self.manager.current = tela
@@ -266,6 +302,8 @@ class ConsultarChaveEstrangeira(MDScreen):
 
     def pesquisar(self, texto):
 
+        print(self.tabela)
+
         if self.tabela == 'curso':
             script = '''SELECT id_curso, descricao from CURSO WHERE descricao ILIKE %s ORDER BY 2'''
         elif self.tabela == 'prof':
@@ -273,8 +311,12 @@ class ConsultarChaveEstrangeira(MDScreen):
         elif self.tabela == 'aluno':
             script = '''SELECT id_aluno, nome FROM aluno WHERE nome ILIKE %s ORDER BY 2'''
         elif self.tabela == 'turma':
-            script = '''SELECT id_turma, curso.descricao FROM turma, curso WHERE turma.id_curso = curso.id_curso 
+            script = '''SELECT turma.id_turma, curso.descricao FROM turma, curso WHERE turma.id_curso = curso.id_curso 
                             and curso.descricao ILIKE %s ORDER BY 2'''
+        elif self.tabela == 'aluno_turma':
+            script = '''SELECT aluno_turma.id_aluno_turma, aluno_turma.matricula, aluno.nome, curso.descricao FROM 
+            aluno_turma, turma, curso, aluno WHERE turma.id_curso = curso.id_curso and aluno_turma.id_aluno = 
+            aluno.id_aluno and turma.id_turma = aluno_turma.id_turma and aluno.nome ILIKE %s ORDER BY 2'''
         else:
             script = 'deu erro'
 
@@ -288,13 +330,22 @@ class ConsultarChaveEstrangeira(MDScreen):
 
             consulta = cur.fetchall()
 
-            for row in consulta:
-                id_item, info = row
+            if self.tabela != 'aluno_turma':
+                for row in consulta:
+                    id_item, info = row
 
-                item = ChaveListItem(id_item=str(id_item), info=str(info), sm=self.manager, tabela=self.tabela)
+                    item = ChaveListItem(id_item=str(id_item), info=str(info), sm=self.manager, tabela=self.tabela)
 
-                self.ids.chaves_list.add_widget(item)
+                    self.ids.chaves_list.add_widget(item)
+            else:
+                for row in consulta:
+                    id_item, info1, info2, info3 = row
 
+                    info = str(info1) + ' - ' + info2 + ' | ' + info3
+
+                    item = ChaveListItem(id_item=str(id_item), info=str(info), sm=self.manager, tabela=self.tabela)
+
+                    self.ids.chaves_list.add_widget(item)
             conn.close()
 
         except Exception as e:
@@ -367,8 +418,7 @@ class CadastrarTurma(MDScreen):
     tabela = StringProperty('')
 
     def abrir_popup(self, tabela):
-        popup_content = ConsultarChaveEstrangeira(manager=self.manager,
-                                                  tabela=tabela)  # Passar o gerenciador como argumento
+        popup_content = ConsultarChaveEstrangeira(manager=self.manager, tabela=tabela)
         popup = CursoPopup(content=popup_content, manager=self.manager)
         popup.open()
 
@@ -377,9 +427,6 @@ class CadastrarTurma(MDScreen):
 
     def salvar_dados(self):
         salvar(self, self.tabela)
-
-
-# --------------------------  FALTA IMPLEMENTAR  -------------------------------
 
 
 class CadastrarAlunoTurma(MDScreen):
@@ -405,7 +452,19 @@ class CadastrarAlunoTurma(MDScreen):
 
 
 class CadastrarPagamento(MDScreen):
-    pass
+    tabela = StringProperty('')
+    logado = StringProperty('')
+
+    def abrir_popup(self, tabela):
+        popup_content = ConsultarChaveEstrangeira(manager=self.manager, tabela=tabela)
+        popup = CursoPopup(content=popup_content, manager=self.manager)
+        popup.open()
+
+    def principal(self):
+        principal(self)
+
+    def salvar_dados(self):
+        salvar(self, self.tabela)
 
 
 # ---------------------------  APP  ---------------------------------
@@ -417,11 +476,11 @@ class DibTopApp(MDApp):
         Builder.load_file("screens.kv")
 
         Window.clearcolor = (1, 1, 1, 1)
-        # Window.maximize()
+        Window.maximize()
         self.theme_cls.primary_palette = "Green"
 
         sm = MainScreenManager(transition=NoTransition())
-        # sm.current = 'login'
+        sm.current = 'login'
 
         return sm
 
