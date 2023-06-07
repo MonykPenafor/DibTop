@@ -36,7 +36,7 @@ class HoverButton(Button):
             self.on_leave()
 
     def on_enter(self, *args):
-        self.background_color = (0, 0.737, 0.831, 1)  # cor hover bg
+        self.background_color = (0.1, 0.537, 0.831, 1)  # cor hover bg
         self.color = 'white'  # cor do texto hover
 
     def on_leave(self, *args):

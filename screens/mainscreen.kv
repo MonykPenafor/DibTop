@@ -90,15 +90,32 @@
 
                 MDBoxLayout:
                     orientation: 'vertical'
-                    MDRectangleFlatIconButton:
-                        icon: "android"
-                        text: "GRADE DE HORÁRIOS"
-                        md_bg_color: "green"
-                        theme_text_color: "Custom"
-                        text_color: "black"
-                        #line_color: "black"
-                        theme_icon_color: "Custom"
-                        icon_color: "black"
+
+                    BoxLayout:
+                        orientation: 'horizontal'
+
+                        MDLabel:
+                            text: "Procurar"
+                            pos_hint: {'center_x': 0.5, 'center_y': 0.75}
+                            font_size:  15
+                        CustomSpinner:
+                            id: escolha
+                            text: 'Professor'
+                            size_hint: 0.1, None
+                            height: dp(30)
+                            size_hint_x: None
+                            width: dp(250)
+                            pos_hint: {'center_x':0.5,'center_y':0.8}
+                            values: 'Professor', 'Aluno'
+                            font_size: '17sp'
+                            color: 'black' # Define a cor do texto
+                            background_normal: ''
+                            background_color: 0.18,0.53,1,1  # Define a cor de fundo do Spinner
+                            option_cls: Factory.get('SpinnerOption')  # Define a classe das opções do spinner
+
+
+
+
 
 
         MDBoxLayout:

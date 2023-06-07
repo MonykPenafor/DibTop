@@ -476,11 +476,11 @@ class DibTopApp(MDApp):
         Builder.load_file("screens.kv")
 
         Window.clearcolor = (1, 1, 1, 1)
-        Window.maximize()
+        # Window.maximize()
         self.theme_cls.primary_palette = "Green"
 
         sm = MainScreenManager(transition=NoTransition())
-        sm.current = 'login'
+        # sm.current = 'login'
 
         return sm
 
