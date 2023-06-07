@@ -351,6 +351,33 @@ def salvar(self, tabela):
         except Exception as e:
             toast(f"Erro ao salvar dados: {e}", duration=2)
 
+    elif tabela == 'alunoturma':
+        try:
+
+            idaluno = pegar_id(self.ids.aluno.text)
+            idturma = pegar_id(self.ids.turma.text)
+
+            idalunoturma = self.ids.idalunoturma.text
+            matricula = self.ids.matricula.text
+            ativo = self.ids.ativo.text
+            certificado = self.ids.certificado.text
+
+            if idalunoturma == '-':
+                cur.execute("""INSERT into aluno_turma (id_turma, id_aluno, matricula, ativo, certificado_entregue) 
+                       Values (%s, %s, %s, %s, %s)""", (idturma, idaluno, matricula, ativo, certificado))
+            else:
+                cur.execute("""UPDATE aluno_turma SET id_turma = %s, id_aluno = %s, matricula = %s, ativo = %s, 
+                certificado_entrege = %s WHERE id_aluno_turma = %s""",
+                            (idturma, idaluno, matricula, ativo, certificado, idalunoturma))
+
+            conn.commit()  # Confirma a transação
+
+            toast("Salvo com sucesso!", duration=2)
+            self.principal()
+
+        except Exception as e:
+            toast(f"Erro ao salvar dados: {e}", duration=2)
+
     else:
         print('tabela ainda nao implementada')
 

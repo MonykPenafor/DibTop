@@ -1,3 +1,4 @@
+from datetime import date
 from kivy.clock import Clock
 from kivy.lang import Builder
 from kivy.properties import StringProperty
@@ -8,7 +9,7 @@ from kivy.core.window import Window
 from kivymd.app import MDApp
 from kivymd.toast import toast
 from kivymd.uix.list import TwoLineAvatarIconListItem, OneLineListItem
-from funcoes import conectar, validar_login, principal, deletar, salvar, editar, opcoes
+from funcoes import conectar, validar_login, principal, deletar, salvar, editar, opcoes, pegar_id
 
 
 # ---------------------   SCREEN MANAGER CLASS  ----------------------------
@@ -70,6 +71,10 @@ class ChaveListItem(OneLineListItem):
             self.manager.get_screen('cad_turma').ids.curso.text = self.frase
         if self.tabela == 'prof':
             self.manager.get_screen('cad_turma').ids.prof.text = self.frase
+        if self.tabela == 'aluno':
+            self.manager.get_screen('cad_alunoturma').ids.aluno.text = self.frase
+        if self.tabela == 'turma':
+            self.manager.get_screen('cad_alunoturma').ids.turma.text = self.frase
 
 
 # ---------------------  TELAS GERAIS --------------------
@@ -170,6 +175,12 @@ class Consultar(MDScreen):
             turma.id_professor = professor.id_professor and turma.id_curso = curso.id_curso and curso.descricao ILIKE 
             %s ORDER BY 2'''
 
+        elif self.tabela == 'alunoturma':
+            script = '''SELECT professor.nome, aluno.nome, aluno_turma.matricula, curso.descricao FROM turma, aluno, 
+            aluno_turma, professor, curso WHERE turma.id_turma = aluno_turma.id_turma and curso.id_curso = 
+            turma.id_curso and aluno.id_aluno = aluno_turma.id_aluno and professor.id_professor = turma.id_professor 
+            and aluno.nome ILIKE 'marta jovellar' ORDER BY 2'''
+
         else:
             script = 'deu erro consultar class'
 
@@ -247,6 +258,11 @@ class ConsultarChaveEstrangeira(MDScreen):
             script = '''SELECT id_curso, descricao from CURSO WHERE descricao ILIKE %s ORDER BY 2'''
         elif self.tabela == 'prof':
             script = '''SELECT id_professor, nome FROM professor WHERE nome ILIKE %s ORDER BY 2'''
+        elif self.tabela == 'aluno':
+            script = '''SELECT id_aluno, nome FROM aluno WHERE nome ILIKE %s ORDER BY 2'''
+        elif self.tabela == 'turma':
+            script = '''SELECT id_turma, curso.descricao FROM turma, curso WHERE turma.id_curso = curso.id_curso 
+                            and curso.descricao ILIKE %s ORDER BY 2'''
         else:
             script = 'deu erro'
 
@@ -350,6 +366,7 @@ class CadastrarTurma(MDScreen):
     def salvar_dados(self):
         salvar(self, self.tabela)
 
+
 # --------------------------  FALTA IMPLEMENTAR  -------------------------------
 
 
@@ -367,6 +384,12 @@ class CadastrarAlunoTurma(MDScreen):
     def salvar_dados(self):
         salvar(self, self.tabela)
 
+    def gerar_matricula(self):
+        ano = date.today().strftime("%Y")
+        aluno_id = pegar_id(self.ids.aluno.text)
+        turma_id = pegar_id(self.ids.turma.text)
+        mat = str(ano)+str(aluno_id)+str(turma_id)
+        self.ids.matricula.text = mat
 
 
 class CadastrarPagamento(MDScreen):
