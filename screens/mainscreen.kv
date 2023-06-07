@@ -93,12 +93,70 @@
 
                     BoxLayout:
                         orientation: 'horizontal'
+                        spacing: 5
 
                         MDLabel:
-                            text: "Procurar"
-                            pos_hint: {'center_x': 0.5, 'center_y': 0.75}
+                            text: "Calcular lucros"
                             font_size:  15
-                      
+                            pos_hint: {'center_x':0.5,'center_y':0.8}
+
+
+                        CustomSpinner:
+                            id: mes
+                            text: 'MES'
+                            size_hint: 0.1, None
+                            height: dp(30)
+                            size_hint_x: None
+                            width: dp(50)
+                            pos_hint: {'center_x':0.5,'center_y':0.8}
+                            values: '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'
+                            font_size: '17sp'
+                            color: 'black' # Define a cor do texto
+                            background_normal: ''
+                            background_color: 0.18,0.53,1,1  # Define a cor de fundo do Spinner
+
+                            option_cls: Factory.get('SpinnerOption')  # Define a classe das opções do spinner
+
+
+
+                        CustomSpinner:
+                            id: ano
+                            text: 'ANO'
+                            size_hint: 0.1, None
+                            height: dp(30)
+                            size_hint_x: None
+                            width: dp(50)
+                            pos_hint: {'center_x':0.5,'center_y':0.8}
+                            values: '2020', '2021', '2022', '2023'
+                            font_size: '17sp'
+                            color: 'black' # Define a cor do texto
+                            background_normal: ''
+                            background_color: 0.18,0.53,1,1  # Define a cor de fundo do Spinner
+
+                            option_cls: Factory.get('SpinnerOption')  # Define a classe das opções do spinner
+
+                        MDFillRoundFlatButton:
+                            id: btncalcular
+                            text: 'Calcular'
+                            md_bg_color: 'black'
+                            text_color: 1,1,1,1
+                            pos_hint: {'center_x':0.5,'center_y':0.8}
+                            size_hint_x: 0.75
+                            font_size: 20
+                            on_release: root.chamar_funcao()
+
+
+                    BoxLayout:
+
+
+                        MDLabel:
+                            id: resultado
+                            text: "Resultado"
+                            font_size:  15
+                            pos_hint: {'center_x':0.5,'center_y':0.8}
+
+                            size_hint_y: 0.9
+
         MDBoxLayout:
             md_bg_color: 0.19, 0.21, 0.22, 1
             size_hint_y: 0.05

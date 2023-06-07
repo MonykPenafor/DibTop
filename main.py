@@ -116,6 +116,20 @@ class MainScreen(MDScreen):
         self.manager.get_screen('crud').btn_name = nome  # enviando o nome do botão clicado para a tela de crud
         self.manager.current = 'crud'
 
+    def chamar_funcao(self):
+        mes = self.ids.mes.text
+        ano = self.ids.ano.text
+
+        conn = conectar()
+        cur = conn.cursor()
+
+        cur.execute('SELECT calcular_lucro_mes( %s, %s)', (mes, ano))
+        resul = cur.fetchone()
+
+        frase = 'Lucros: ' + str(resul)
+
+        self.ids.resultado.text = frase
+
 
 class CrudScreen(MDScreen):
     btn_name = StringProperty('')  # recebeu da tela principal

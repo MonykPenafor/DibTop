@@ -1,6 +1,7 @@
 from datetime import datetime
 import psycopg2
 from kivy.core.window import Window
+from kivy.properties import StringProperty
 from kivy.uix.button import Button
 from kivy.uix.popup import Popup
 from kivy.uix.spinner import Spinner
@@ -13,9 +14,12 @@ from kivymd.uix.textfield import MDTextField
 # --------------------------------  CLASSES -------------------------------------
 
 class ConfirmationPopup(Popup):
-    def __init__(self, callback, **kwargs):
+    info = StringProperty('')
+
+    def __init__(self,  callback, info='', **kwargs):
         super(ConfirmationPopup, self).__init__(**kwargs)
         self.callback = callback
+        self.info = info
 
     def confirm(self):
         self.callback()
@@ -159,7 +163,7 @@ def deletar(self, cod, tabela, logado):
             toast(f"Erro: {e}", duration=5)
             print(e)
 
-    popup = ConfirmationPopup(callback=confirmar_exclusao)  # popup para confirma exclusão
+    popup = ConfirmationPopup(callback=confirmar_exclusao, info=self.info1)  # popup para confirma exclusão
     popup.open()
 
 
