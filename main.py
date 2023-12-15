@@ -327,7 +327,7 @@ class ConsultarChaveEstrangeira(MDScreen):
         elif self.tabela == 'turma':
             script = '''SELECT turma.id_turma, curso.descricao FROM turma, curso WHERE turma.id_curso = curso.id_curso 
                             and curso.descricao ILIKE %s ORDER BY 2'''
-        elif self.tabela == 'aluno_turma':
+        elif self.tabela == 'alunoturma':
             script = '''SELECT aluno_turma.id_aluno_turma, aluno_turma.matricula, aluno.nome, curso.descricao FROM 
             aluno_turma, turma, curso, aluno WHERE turma.id_curso = curso.id_curso and aluno_turma.id_aluno = 
             aluno.id_aluno and turma.id_turma = aluno_turma.id_turma and aluno.nome ILIKE %s ORDER BY 2'''
@@ -490,11 +490,11 @@ class DibTopApp(MDApp):
         Builder.load_file("screens.kv")
 
         Window.clearcolor = (1, 1, 1, 1)
-        # Window.maximize()
+        Window.maximize()
         self.theme_cls.primary_palette = "Green"
 
         sm = MainScreenManager(transition=NoTransition())
-        # sm.current = 'login'
+        sm.current = 'login'
 
         return sm
 
